@@ -1,0 +1,49 @@
+# Node / JS
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnp/
+.pnp.js
+
+# Expo / React Native
+.expo/
+.expo-shared/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+dist/
+android/
+ios/
+
+# NativeWind / Tailwind
+*.css.map
+
+# TypeScript build output
+dist/
+build/
+
+# Env files (never commit real secrets)
+.env
+.env.local
+.env.*.local
+mobile/.env
+backend/.env
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Logs / temp
+logs/
+*.log
+tmp/
+temp/
+C:\Users\sairi\AppData\Local\Temp\opencode/
