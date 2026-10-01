@@ -38,3 +38,28 @@ export interface AssistantMessageResponse {
   language: string;
   availability: Record<string, boolean>;
 }
+
+export type VisionMimeType = 'image/jpeg' | 'image/png' | 'image/webp';
+
+export interface VisionHistoryTurn {
+  role: 'user' | 'model' | 'assistant';
+  text: string;
+}
+
+export interface VisionAnalyzeRequest {
+  /** Base64 image data (data-URL prefix optional). Never stored. */
+  image: string;
+  mimeType: VisionMimeType;
+  message: string;
+  history?: VisionHistoryTurn[];
+  language?: 'en' | 'hi' | 'te';
+}
+
+export interface VisionAnalyzeResponse {
+  reply: string;
+  intent: string;
+  capability: string;
+  model: string;
+  language: string;
+  availability: Record<string, boolean>;
+}

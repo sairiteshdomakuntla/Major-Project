@@ -1,9 +1,12 @@
 import { GoogleGenAI } from '@google/genai';
 import type {
   AITextProvider,
+  AIVisionProvider,
   SupportedAssistantLanguage,
   TextGenerationRequest,
   TextGenerationResult,
+  VisionGenerationRequest,
+  VisionGenerationResult,
 } from './aiProvider.js';
 import {
   ProviderError,
@@ -33,7 +36,7 @@ function buildSystemInstruction(language: SupportedAssistantLanguage): string {
  * Gemini implementation of AITextProvider.
  * Credentials come only from backend env (GEMINI_API_KEY) — never the client.
  */
-export class GeminiProvider implements AITextProvider {
+export class GeminiProvider implements AITextProvider, AIVisionProvider {
   readonly name = 'gemini';
   private client: GoogleGenAI | null = null;
 
@@ -90,6 +93,67 @@ export class GeminiProvider implements AITextProvider {
     }
     return { text, model: this.model };
   }
+
+  async generateVisionText(req: VisionGenerationRequest): Promise<VisionGenerationResult> {
+    const client = this.getClient();
+
+    const contents = [
+      ...req.history.map((t) => ({
+        role: t.role,
+        parts: [{ text: t.text }],
+      })),
+      {
+        role: 'user',
+        parts: [
+          { inlineData: { mimeType: req.mimeType, data: req.imageBase64 } },
+          { text: req.message },
+        ],
+      },
+    ];
+
+    const attempt = client.models.generateContent({
+      model: this.model,
+      contents,
+      config: { systemInstruction: buildVisionInstruction(req.language) },
+    });
+
+    let response;
+    try {
+      response = await withTimeout(attempt, req.timeoutMs);
+    } catch (err) {
+      throw mapError(err, this.model);
+    }
+
+    const text = response.text?.trim() ?? '';
+    if (!text) {
+      throw new ProviderError(
+        'The AI could not describe this image. Try a clearer photo and ask again.',
+        502,
+        true,
+      );
+    }
+    return { text, model: this.model };
+  }
+}
+
+/**
+ * Vision prompt tuned for blind users: concrete spatial description plus
+ * verbatim OCR. Plain text only — the result is read aloud by TTS.
+ */
+function buildVisionInstruction(language: SupportedAssistantLanguage): string {
+  return [
+    'You are AgentBridge vision assistant. A blind person points their',
+    'camera at something and needs to understand it.',
+    `Respond in ${LANGUAGE_NAMES[language]}.`,
+    'Describe the scene concretely: main subject first, then key objects',
+    'with their positions (left, right, center, near, far) and any people.',
+    'If there is readable text, quote it exactly under "Text in the image:".',
+    'If the photo is dark, blurry, or unclear, say so first, then describe',
+    'whatever you can make out.',
+    'Never invent details you cannot see; state uncertainty plainly.',
+    'Use plain text only — no tables, no heavy markdown.',
+    'Do not claim your interpretation is guaranteed accurate.',
+  ].join(' ');
 }
 
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {

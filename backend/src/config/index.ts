@@ -23,6 +23,10 @@ export const config = {
   geminiApiKey: process.env.GEMINI_API_KEY ?? '',
   geminiModel: process.env.GEMINI_MODEL ?? 'gemini-2.5-flash',
   geminiTimeoutMs: parsePositiveInt(process.env.GEMINI_TIMEOUT_MS, 25000),
+  geminiVisionTimeoutMs: parsePositiveInt(
+    process.env.GEMINI_VISION_TIMEOUT_MS,
+    60000,
+  ),
 } as const;
 
 export type AppConfig = typeof config;

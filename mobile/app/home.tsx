@@ -27,10 +27,6 @@ function Chip({ label }: { label: string }) {
 
 const COMING_NEXT = [
   {
-    title: 'Understand images',
-    description: 'Camera help with reading text and describing scenes.',
-  },
-  {
     title: 'Translate',
     description: 'Move between Indian languages with ease.',
   },
@@ -143,6 +139,28 @@ export default function HomeScreen() {
         </Pressable>
 
         {/* Future foundation — clearly non-interactive previews */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Open the vision assistant. Describe scenes and read text with voice or touch."
+          accessibilityHint="Opens the camera-based vision assistant"
+          onPress={() => router.push('/vision')}
+          className="flex-row items-center gap-3 rounded-2xl bg-slate-800 p-4 active:opacity-80"
+        >
+          <View className="flex-1 gap-0.5">
+            <Text className="text-base font-bold text-slate-50">
+              Understand images
+            </Text>
+            <Text className="text-sm leading-5 text-slate-400">
+              Describe scenes and read text, with voice guidance.
+            </Text>
+          </View>
+          <Text
+            importantForAccessibility="no"
+            className="text-2xl font-bold text-sky-400"
+          >
+            ›
+          </Text>
+        </Pressable>
         <View className="gap-3 rounded-2xl bg-slate-800 p-4">
           <Text
             accessibilityRole="header"

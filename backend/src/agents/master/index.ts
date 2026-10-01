@@ -6,6 +6,7 @@
 
 import type {
   AITextProvider,
+  AIVisionProvider,
   ConversationTurn,
   SupportedAssistantLanguage,
 } from '../../providers/aiProvider.js';
@@ -20,12 +21,15 @@ export type AssistantIntent =
   | 'question'
   | 'help'
   | 'translation-request'
+  | 'vision-describe'
+  | 'vision-read'
+  | 'vision-followup'
   | 'chat';
 
 /** Which capabilities are actually live. Mobile can use this for honest UI. */
 export const CAPABILITY_AVAILABILITY: Record<AssistantCapability, boolean> = {
   'text-chat': true,
-  vision: false,
+  vision: true,
   speech: false,
   translation: false,
 };
@@ -35,6 +39,13 @@ export interface MasterAgentRequest {
   history: ConversationTurn[];
   language: SupportedAssistantLanguage;
   timeoutMs: number;
+}
+
+export interface MasterAgentVisionRequest extends MasterAgentRequest {
+  imageBase64: string;
+  mimeType: 'image/jpeg' | 'image/png' | 'image/webp';
+  /** True when the image was already described and this is a follow-up. */
+  hasImageContext: boolean;
 }
 
 export interface MasterAgentResponse {
@@ -82,7 +93,7 @@ export function capabilityUnavailable(capability: AssistantCapability): string {
 }
 
 export class MasterAgent {
-  constructor(private readonly textProvider: AITextProvider) {}
+  constructor(private readonly textProvider: AITextProvider & AIVisionProvider) {}
 
   async handle(req: MasterAgentRequest): Promise<MasterAgentResponse> {
     const intent = detectIntent(req.message);
@@ -101,6 +112,33 @@ export class MasterAgent {
       reply: result.text,
       intent,
       capability,
+      model: result.model,
+      language: req.language,
+      availability: { ...CAPABILITY_AVAILABILITY },
+    };
+  }
+
+  async handleVision(req: MasterAgentVisionRequest): Promise<MasterAgentResponse> {
+    const text = req.message.toLowerCase();
+    const intent: AssistantIntent = req.hasImageContext
+      ? 'vision-followup'
+      : /\b(read|text|letter|sign|label|menu)\b/.test(text)
+        ? 'vision-read'
+        : 'vision-describe';
+
+    const result = await this.textProvider.generateVisionText({
+      imageBase64: req.imageBase64,
+      mimeType: req.mimeType,
+      message: req.message,
+      history: req.history,
+      language: req.language,
+      timeoutMs: req.timeoutMs,
+    });
+
+    return {
+      reply: result.text,
+      intent,
+      capability: 'vision',
       model: result.model,
       language: req.language,
       availability: { ...CAPABILITY_AVAILABILITY },

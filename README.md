@@ -34,6 +34,8 @@ Endpoints:
 - `GET /api/v1` → API identification
 - `POST /api/v1/assistant/message` → AI assistant (needs `GEMINI_API_KEY`,
   see `docs/assistant-api.md`)
+- `POST /api/v1/vision/analyze` → vision analysis + OCR (same key,
+  see `docs/vision.md`)
 
 Other scripts:
 
@@ -56,7 +58,9 @@ npx expo start
 - Starter screen shows NativeWind styling + backend connectivity card
   (Connecting / Connected / Connection Failed + Retry, 8s timeout).
 - Complete onboarding, then open **Ask anything** on Home for the AI assistant
-  (requires backend with `GEMINI_API_KEY`).
+  (requires backend with `GEMINI_API_KEY`), or **Understand images** for the
+  voice-first vision assistant (camera + speech output work in Expo Go;
+  voice commands need a development build — see below).
 
 Type check:
 
@@ -83,3 +87,22 @@ npx expo doctor
 - The assistant needs a Gemini key (free from https://aistudio.google.com/apikey)
   in `backend/.env` — without it, the assistant API returns 503 and the app
   shows a "not set up yet" message. Keys stay server-side, never in the app.
+
+## Development build (for vision voice commands)
+
+Voice input (`expo-speech-recognition`) contains native code and does not run
+in Expo Go. Everything else (camera, speech output, assistant, onboarding)
+works in Expo Go. One-time setup for voice:
+
+```powershell
+# 1. Install Android Studio + SDK Platform (API 35+) and accept licenses.
+#    Set ANDROID_HOME, e.g.:
+#    [Environment]::SetEnvironmentVariable("ANDROID_HOME", "$env:LOCALAPPDATA\Android\Sdk", "User")
+# 2. Connect the phone (USB debugging) or start an emulator, then:
+cd mobile
+npx expo run:android
+# 3. Grant Camera + Microphone when asked. Tap Listen and say "describe".
+```
+
+The app detects the missing module in Expo Go and says so instead of
+crashing — touch buttons cover every voice command.

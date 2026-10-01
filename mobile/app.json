@@ -25,7 +25,21 @@
     },
     "plugins": [
       "expo-router",
-      "expo-status-bar"
+      "expo-status-bar",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow AgentBridge to use the camera so it can describe what is in front of you."
+        }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Allow AgentBridge to use the microphone so you can control it with your voice.",
+          "speechRecognitionPermission": "Allow AgentBridge to recognize your speech for voice commands.",
+          "androidSpeechServicePackages": ["com.google.android.googlequicksearchbox"]
+        }
+      ]
     ]
   }
 }

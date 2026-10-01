@@ -26,6 +26,26 @@ export interface AITextProvider {
   generateText(req: TextGenerationRequest): Promise<TextGenerationResult>;
 }
 
+export interface VisionGenerationRequest {
+  /** Raw base64 (no data-URL prefix). Image is analyzed, never stored. */
+  imageBase64: string;
+  mimeType: 'image/jpeg' | 'image/png' | 'image/webp';
+  /** What to do with the image; defaults to a full description. */
+  message: string;
+  history: ConversationTurn[];
+  language: SupportedAssistantLanguage;
+  timeoutMs: number;
+}
+
+export interface VisionGenerationResult {
+  text: string;
+  model: string;
+}
+
+export interface AIVisionProvider {
+  generateVisionText(req: VisionGenerationRequest): Promise<VisionGenerationResult>;
+}
+
 /** Server is missing credentials or they were rejected — maps to HTTP 503. */
 export class ProviderNotConfiguredError extends Error {
   readonly statusCode = 503;

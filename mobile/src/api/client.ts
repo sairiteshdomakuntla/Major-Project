@@ -122,3 +122,39 @@ export function sendAssistantMessage(
     { method: 'POST', body: req },
   );
 }
+
+export type VisionMimeType = 'image/jpeg' | 'image/png' | 'image/webp';
+
+export interface VisionHistoryTurn {
+  role: 'user' | 'model';
+  text: string;
+}
+
+export interface VisionAnalyzeRequest {
+  /** Raw base64 (data-URL prefix optional). Images are analyzed, never stored. */
+  image: string;
+  mimeType: VisionMimeType;
+  message?: string;
+  history?: VisionHistoryTurn[];
+  language: AssistantLanguage;
+}
+
+export interface VisionAnalyzeResponse {
+  reply: string;
+  intent: string;
+  capability: string;
+  model: string;
+  language: string;
+  availability: Record<string, boolean>;
+}
+
+/** Vision analysis moves more bytes — default timeout is 75s. */
+export function analyzeVisionImage(
+  req: VisionAnalyzeRequest,
+  timeoutMs = 75000,
+): Promise<VisionAnalyzeResponse> {
+  return fetchJson<VisionAnalyzeResponse>('/api/v1/vision/analyze', timeoutMs, {
+    method: 'POST',
+    body: req,
+  });
+}
