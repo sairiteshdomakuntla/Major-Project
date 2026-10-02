@@ -89,7 +89,8 @@ export function getApiInfo(timeoutMs?: number): Promise<ApiInfoResponse> {
   return fetchJson<ApiInfoResponse>('/api/v1', timeoutMs);
 }
 
-export type AssistantLanguage = 'en' | 'hi' | 'te';
+export type AssistantLanguage = 'en' | 'hi' | 'te' | 'ta' | 'kn' | 'ml' | 'kok';
+export type AccessibilityNeed = 'visual' | 'hearing' | 'speech' | 'general';
 
 export interface AssistantHistoryTurn {
   role: 'user' | 'model';
@@ -100,6 +101,8 @@ export interface AssistantMessageRequest {
   message: string;
   history: AssistantHistoryTurn[];
   language: AssistantLanguage;
+  /** User's accessibility needs — forwarded to backend for prompt tuning. */
+  needs?: AccessibilityNeed[];
 }
 
 export interface AssistantMessageResponse {
@@ -137,6 +140,8 @@ export interface VisionAnalyzeRequest {
   message?: string;
   history?: VisionHistoryTurn[];
   language: AssistantLanguage;
+  /** User's accessibility needs — forwarded to backend for prompt tuning. */
+  needs?: AccessibilityNeed[];
 }
 
 export interface VisionAnalyzeResponse {

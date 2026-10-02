@@ -46,6 +46,7 @@ interface SendVariables {
  */
 export function useConversation() {
   const language = useProfileStore((s) => s.language) as AssistantLanguage;
+  const needs = useProfileStore((s) => s.needs);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const idCounter = useRef(0);
 
@@ -60,6 +61,7 @@ export function useConversation() {
         message: vars.text,
         history: vars.context,
         language,
+        needs: needs.length > 0 ? needs : undefined,
       }),
     onSuccess: (data) => {
       setMessages((prev) => [

@@ -15,7 +15,11 @@ export const MAX_VISION_HISTORY_TURNS = 20;
 export const DEFAULT_VISION_PROMPT =
   'Describe this image for a blind person: what is in front of the camera, key objects and their positions, any people, and quote any readable text exactly.';
 
-const SUPPORTED_LANGUAGES: SupportedAssistantLanguage[] = ['en', 'hi', 'te'];
+const SUPPORTED_LANGUAGES: SupportedAssistantLanguage[] = [
+  'en', 'hi', 'te', 'ta', 'kn', 'ml', 'kok',
+];
+const SUPPORTED_NEEDS = ['visual', 'hearing', 'speech', 'general'] as const;
+type ValidNeed = typeof SUPPORTED_NEEDS[number];
 const SUPPORTED_MIME = ['image/jpeg', 'image/png', 'image/webp'] as const;
 type SupportedMime = (typeof SUPPORTED_MIME)[number];
 
@@ -94,7 +98,20 @@ function parseBody(body: unknown): VisionAnalyzeRequest | string {
     language !== undefined &&
     !SUPPORTED_LANGUAGES.includes(language as SupportedAssistantLanguage)
   ) {
-    return 'Field "language" must be one of: en, hi, te.';
+    return 'Field "language" must be one of: en, hi, te, ta, kn, ml, kok.';
+  }
+
+  const rawNeeds = (body as Record<string, unknown>).needs;
+  let needs: ValidNeed[] | undefined;
+  if (rawNeeds !== undefined) {
+    if (!Array.isArray(rawNeeds))
+      return 'Field "needs" must be an array of strings.';
+    const invalid = rawNeeds.filter(
+      (n) => !SUPPORTED_NEEDS.includes(n as ValidNeed),
+    );
+    if (invalid.length > 0)
+      return `Field "needs" contains unknown values: ${invalid.join(', ')}.`;
+    needs = rawNeeds as ValidNeed[];
   }
 
   return {
@@ -103,6 +120,7 @@ function parseBody(body: unknown): VisionAnalyzeRequest | string {
     message: prompt,
     history: (history ?? []) as VisionAnalyzeRequest['history'],
     language: (language as SupportedAssistantLanguage | undefined) ?? 'en',
+    needs,
   };
 }
 
@@ -133,6 +151,7 @@ export async function postVisionAnalyze(req: Request, res: Response): Promise<vo
       language: parsed.language ?? 'en',
       timeoutMs: config.geminiVisionTimeoutMs,
       hasImageContext: history.length > 0,
+      needs: parsed.needs,
     });
     res.status(200).json({
       reply: result.reply,

@@ -73,6 +73,7 @@ interface AnalyzeVars {
  */
 export function useVisionSession() {
   const language = useProfileStore((s) => s.language);
+  const needs = useProfileStore((s) => s.needs);
   const outputModes = useProfileStore((s) => s.outputModes);
   const voiceOutput = outputModes.includes('speech');
 
@@ -128,6 +129,7 @@ export function useVisionSession() {
         message: vars.prompt,
         history: vars.context,
         language,
+        needs: needs.length > 0 ? needs : undefined,
       }),
     onSuccess: (data, vars) => {
       setMessages((prev) => [

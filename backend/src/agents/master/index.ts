@@ -7,6 +7,7 @@
 import type {
   AITextProvider,
   AIVisionProvider,
+  AccessibilityNeed,
   ConversationTurn,
   SupportedAssistantLanguage,
 } from '../../providers/aiProvider.js';
@@ -39,6 +40,8 @@ export interface MasterAgentRequest {
   history: ConversationTurn[];
   language: SupportedAssistantLanguage;
   timeoutMs: number;
+  /** Optional: forwarded from user profile for prompt personalisation. */
+  needs?: AccessibilityNeed[];
 }
 
 export interface MasterAgentVisionRequest extends MasterAgentRequest {
@@ -106,6 +109,7 @@ export class MasterAgent {
       history: req.history,
       language: req.language,
       timeoutMs: req.timeoutMs,
+      needs: req.needs,
     });
 
     return {
@@ -133,6 +137,7 @@ export class MasterAgent {
       history: req.history,
       language: req.language,
       timeoutMs: req.timeoutMs,
+      needs: req.needs,
     });
 
     return {

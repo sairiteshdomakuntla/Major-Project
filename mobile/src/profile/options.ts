@@ -1,7 +1,6 @@
 import type {
   AccessibilityNeed,
   AppLanguage,
-  FutureLanguage,
   InputMode,
   OutputMode,
   SupportedLanguage,
@@ -44,26 +43,27 @@ export interface LanguageOption {
 }
 
 export const LANGUAGE_OPTIONS: LanguageOption[] = [
-  { value: 'en', label: 'English', nativeLabel: 'English', supported: true },
-  { value: 'hi', label: 'Hindi', nativeLabel: 'हिन्दी', supported: true },
-  { value: 'te', label: 'Telugu', nativeLabel: 'తెలుగు', supported: true },
-  { value: 'ta', label: 'Tamil', nativeLabel: 'தமிழ்', supported: false },
-  { value: 'kn', label: 'Kannada', nativeLabel: 'ಕನ್ನಡ', supported: false },
-  { value: 'ml', label: 'Malayalam', nativeLabel: 'മലയാളം', supported: false },
-  { value: 'kok', label: 'Konkani', nativeLabel: 'कोंकणी', supported: false },
+  { value: 'en',  label: 'English',   nativeLabel: 'English',    supported: true },
+  { value: 'hi',  label: 'Hindi',     nativeLabel: 'हिन्दी',      supported: true },
+  { value: 'te',  label: 'Telugu',    nativeLabel: 'తెలుగు',     supported: true },
+  { value: 'ta',  label: 'Tamil',     nativeLabel: 'தமிழ்',      supported: true },
+  { value: 'kn',  label: 'Kannada',   nativeLabel: 'ಕನ್ನಡ',     supported: true },
+  { value: 'ml',  label: 'Malayalam', nativeLabel: 'മലയാളം',  supported: true },
+  { value: 'kok', label: 'Konkani',   nativeLabel: 'कोंकणी',     supported: true },
 ];
 
 export function isSupportedLanguage(
   value: AppLanguage,
 ): value is SupportedLanguage {
-  return (LANGUAGE_OPTIONS.find((o) => o.value === value)?.supported ?? false);
+  return LANGUAGE_OPTIONS.some((o) => o.value === value && o.supported);
 }
 
 export function futureLanguages(): LanguageOption[] {
-  return LANGUAGE_OPTIONS.filter((o) => !o.supported);
+  // All languages are now supported; this returns empty.
+  return [];
 }
 
-export function languageLabel(value: SupportedLanguage | FutureLanguage): string {
+export function languageLabel(value: SupportedLanguage): string {
   const found = LANGUAGE_OPTIONS.find((o) => o.value === value);
   return found ? `${found.label} · ${found.nativeLabel}` : value;
 }

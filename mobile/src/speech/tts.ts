@@ -1,17 +1,48 @@
 import * as Speech from 'expo-speech';
 
-export type TtsLanguage = 'en' | 'hi' | 'te';
+export type TtsLanguage = 'en' | 'hi' | 'te' | 'ta' | 'kn' | 'ml' | 'kok';
 
 const VOICE_LANGUAGE: Record<TtsLanguage, string> = {
-  en: 'en',
-  hi: 'hi',
-  te: 'te',
+  en:  'en',
+  hi:  'hi',
+  te:  'te',
+  ta:  'ta',
+  kn:  'kn',
+  ml:  'ml',
+  // Konkani has no dedicated TTS voice on most platforms — use Hindi as the
+  // closest Devanagari fallback until a Konkani voice is available.
+  kok: 'hi',
 };
 
 export interface SpeakCallbacks {
   onDone?: () => void;
   onStopped?: () => void;
   onError?: (message: string) => void;
+}
+
+/**
+ * iOS silences expo-speech when the physical ringer switch is off.
+ * Setting the audio mode once forces playback through the speaker.
+ *
+ * expo-av contains a native module that is NOT available in Expo Go,
+ * so we dynamic-import it and swallow failures gracefully.
+ */
+let audioModeConfigured = false;
+async function ensureAudioMode(): Promise<void> {
+  if (audioModeConfigured) return;
+  try {
+    const { Audio } = await import('expo-av');
+    await Audio.setAudioModeAsync({
+      playsInSilentModeIOS: true,
+      allowsRecordingIOS: false,
+      staysActiveInBackground: false,
+      shouldDuckAndroid: true,
+    });
+    audioModeConfigured = true;
+  } catch {
+    // expo-av not available (Expo Go) — speech still works when ringer is on.
+    audioModeConfigured = true; // don't retry every call
+  }
 }
 
 /** Speaks text aloud, stopping anything currently playing first. */
@@ -22,6 +53,10 @@ export async function speakText(
 ): Promise<void> {
   const trimmed = text.trim();
   if (trimmed.length === 0) return;
+
+  // Ensure iOS audio session is configured for audible playback.
+  await ensureAudioMode();
+
   try {
     await Speech.stop();
   } catch {

@@ -9,13 +9,20 @@ export type AccessibilityNeed =
   | 'speech'
   | 'general';
 
-/** Fully supported languages (v1). */
-export type SupportedLanguage = 'en' | 'hi' | 'te';
+/** Fully supported languages (v2). */
+export type SupportedLanguage =
+  | 'en'
+  | 'hi'
+  | 'te'
+  | 'ta'
+  | 'kn'
+  | 'ml'
+  | 'kok';
 
-/** Announced but not yet supported — shown as "coming soon", never selectable. */
-export type FutureLanguage = 'ta' | 'kn' | 'ml' | 'kok';
+/** No more future languages — all are now supported. */
+export type FutureLanguage = never;
 
-export type AppLanguage = SupportedLanguage | FutureLanguage;
+export type AppLanguage = SupportedLanguage;
 
 /** Preferred ways to give input. Multi-select preferences, not restrictions. */
 export type InputMode = 'voice' | 'text' | 'camera';

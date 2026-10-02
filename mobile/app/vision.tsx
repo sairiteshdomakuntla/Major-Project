@@ -175,8 +175,9 @@ export default function VisionScreen() {
                 <CameraView
                   ref={cameraRef}
                   facing="back"
+                  style={{ height: 256, width: '100%' }}
                   accessibilityLabel="Camera preview. Aim at what you want understood."
-                  className="h-64 w-full overflow-hidden rounded-2xl bg-black"
+                  className="overflow-hidden rounded-2xl bg-black"
                 />
                 {hasPhoto ? (
                   <View

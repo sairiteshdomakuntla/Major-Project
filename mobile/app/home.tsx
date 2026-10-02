@@ -8,10 +8,13 @@ import type { SupportedLanguage } from '../src/profile/types';
 import { useProfileStore } from '../src/profile/store';
 
 const GREETINGS: Record<SupportedLanguage, { title: string; subtitle: string }> = {
-  // Short greetings only — full in-app translation arrives with later features.
-  en: { title: 'Welcome', subtitle: 'Your accessible AI companion.' },
-  hi: { title: 'नमस्ते', subtitle: 'आपका सुलभ AI साथी।' },
-  te: { title: 'నమస్కారం', subtitle: 'మీ సులభ AI తోడు.' },
+  en:  { title: 'Welcome',    subtitle: 'Your accessible AI companion.' },
+  hi:  { title: 'नमस्ते',     subtitle: 'आपका सुलभ AI साथी।' },
+  te:  { title: 'నమస్కారం', subtitle: 'మీ సులభ AI తోడు.' },
+  ta:  { title: 'வணக்கம்',   subtitle: 'உங்கள் அணுகல் AI தோழர்.' },
+  kn:  { title: 'ನಮಸ್ಕಾರ',  subtitle: 'ನಿಮ್ಮ ಸುಲಭ AI ಸಂಗಾತಿ.' },
+  ml:  { title: 'നമസ്കാരം', subtitle: 'നിങ്ങളുടെ AI കൂട്ടാളി.' },
+  kok: { title: 'नमस्कार',   subtitle: 'तुमचो सुलभ AI सोबतो.' },
 };
 
 function Chip({ label }: { label: string }) {
@@ -157,6 +160,28 @@ export default function HomeScreen() {
           <Text
             importantForAccessibility="no"
             className="text-2xl font-bold text-sky-400"
+          >
+            ›
+          </Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Open live narration. Real-time AI description of your camera feed."
+          accessibilityHint="Starts a continuous live camera narration"
+          onPress={() => router.push('/live')}
+          className="flex-row items-center gap-3 rounded-2xl bg-emerald-600 p-4 active:opacity-80"
+        >
+          <View className="flex-1 gap-0.5">
+            <Text className="text-base font-bold text-white">
+              Live narration
+            </Text>
+            <Text className="text-sm leading-5 text-emerald-100">
+              Real-time AI description of your surroundings.
+            </Text>
+          </View>
+          <Text
+            importantForAccessibility="no"
+            className="text-2xl font-bold text-white"
           >
             ›
           </Text>

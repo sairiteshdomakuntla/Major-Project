@@ -2,6 +2,7 @@ import { GoogleGenAI } from '@google/genai';
 import type {
   AITextProvider,
   AIVisionProvider,
+  AccessibilityNeed,
   SupportedAssistantLanguage,
   TextGenerationRequest,
   TextGenerationResult,
@@ -17,9 +18,38 @@ const LANGUAGE_NAMES: Record<SupportedAssistantLanguage, string> = {
   en: 'English',
   hi: 'Hindi (हिन्दी)',
   te: 'Telugu (తెలుగు)',
+  ta: 'Tamil (தமிழ்)',
+  kn: 'Kannada (ಕನ್ನಡ)',
+  ml: 'Malayalam (മലയാളം)',
+  kok: 'Konkani (कोंकणी)',
 };
 
-function buildSystemInstruction(language: SupportedAssistantLanguage): string {
+function needsContext(needs: AccessibilityNeed[] | undefined): string {
+  if (!needs || needs.length === 0) return '';
+  const hints: string[] = [];
+  if (needs.includes('visual'))
+    hints.push(
+      'The user is blind or has low vision — use spatial language (left, right, near, far) and always read any on-screen text aloud.',
+    );
+  if (needs.includes('hearing'))
+    hints.push(
+      'The user is deaf or hard of hearing — express everything in text; never refer to audio or sound cues.',
+    );
+  if (needs.includes('speech'))
+    hints.push(
+      'The user cannot speak easily — they may type or use a camera; keep responses concise enough to re-read quickly.',
+    );
+  if (needs.includes('general'))
+    hints.push(
+      'The user prefers simple, clutter-free layouts and language — use short sentences and avoid jargon.',
+    );
+  return hints.length > 0 ? ' ' + hints.join(' ') : '';
+}
+
+function buildSystemInstruction(
+  language: SupportedAssistantLanguage,
+  needs?: AccessibilityNeed[],
+): string {
   return [
     'You are AgentBridge, an accessibility-first AI companion for people',
     'with visual, hearing, or speech difficulties.',
@@ -29,7 +59,7 @@ function buildSystemInstruction(language: SupportedAssistantLanguage): string {
     'If asked to see images, hear audio, or do anything beyond text,',
     'say so briefly and offer what you can do instead.',
     'Do not claim guaranteed accuracy for translations or factual answers.',
-  ].join(' ');
+  ].join(' ') + needsContext(needs);
 }
 
 /**
@@ -73,7 +103,7 @@ export class GeminiProvider implements AITextProvider, AIVisionProvider {
     const attempt = client.models.generateContent({
       model: this.model,
       contents,
-      config: { systemInstruction: buildSystemInstruction(req.language) },
+      config: { systemInstruction: buildSystemInstruction(req.language, req.needs) },
     });
 
     let response;
@@ -114,7 +144,7 @@ export class GeminiProvider implements AITextProvider, AIVisionProvider {
     const attempt = client.models.generateContent({
       model: this.model,
       contents,
-      config: { systemInstruction: buildVisionInstruction(req.language) },
+      config: { systemInstruction: buildVisionInstruction(req.language, req.needs) },
     });
 
     let response;
@@ -140,7 +170,10 @@ export class GeminiProvider implements AITextProvider, AIVisionProvider {
  * Vision prompt tuned for blind users: concrete spatial description plus
  * verbatim OCR. Plain text only — the result is read aloud by TTS.
  */
-function buildVisionInstruction(language: SupportedAssistantLanguage): string {
+function buildVisionInstruction(
+  language: SupportedAssistantLanguage,
+  needs?: AccessibilityNeed[],
+): string {
   return [
     'You are AgentBridge vision assistant. A blind person points their',
     'camera at something and needs to understand it.',
@@ -153,7 +186,7 @@ function buildVisionInstruction(language: SupportedAssistantLanguage): string {
     'Never invent details you cannot see; state uncertainty plainly.',
     'Use plain text only — no tables, no heavy markdown.',
     'Do not claim your interpretation is guaranteed accurate.',
-  ].join(' ');
+  ].join(' ') + needsContext(needs);
 }
 
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {

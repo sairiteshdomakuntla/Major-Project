@@ -15,7 +15,12 @@ import type {
 export const MAX_MESSAGE_CHARS = 4000;
 export const MAX_HISTORY_TURNS = 20;
 
-const SUPPORTED_LANGUAGES: SupportedAssistantLanguage[] = ['en', 'hi', 'te'];
+const SUPPORTED_LANGUAGES: SupportedAssistantLanguage[] = [
+  'en', 'hi', 'te', 'ta', 'kn', 'ml', 'kok',
+];
+
+const SUPPORTED_NEEDS = ['visual', 'hearing', 'speech', 'general'] as const;
+type ValidNeed = typeof SUPPORTED_NEEDS[number];
 
 const masterAgent = new MasterAgent(
   new GeminiProvider(config.geminiApiKey, config.geminiModel),
@@ -64,13 +69,29 @@ function parseBody(body: unknown): AssistantMessageRequest | string {
     language !== undefined &&
     !SUPPORTED_LANGUAGES.includes(language as SupportedAssistantLanguage)
   ) {
-    return 'Field "language" must be one of: en, hi, te.';
+    return 'Field "language" must be one of: en, hi, te, ta, kn, ml, kok.';
   }
+
+  // Validate optional needs[]
+  const rawNeeds = (body as Record<string, unknown>).needs;
+  let needs: ValidNeed[] | undefined;
+  if (rawNeeds !== undefined) {
+    if (!Array.isArray(rawNeeds))
+      return 'Field "needs" must be an array of strings.';
+    const invalid = rawNeeds.filter(
+      (n) => !SUPPORTED_NEEDS.includes(n as ValidNeed),
+    );
+    if (invalid.length > 0)
+      return `Field "needs" contains unknown values: ${invalid.join(', ')}.`;
+    needs = rawNeeds as ValidNeed[];
+  }
+
   const lang = (language as SupportedAssistantLanguage | undefined) ?? 'en';
   return {
     message: message.trim(),
     history: (history ?? []) as AssistantMessageRequest['history'],
     language: lang,
+    needs,
   };
 }
 
@@ -98,6 +119,7 @@ export async function postAssistantMessage(req: Request, res: Response): Promise
       history,
       language: parsed.language ?? 'en',
       timeoutMs: config.geminiTimeoutMs,
+      needs: parsed.needs,
     });
     const body: AssistantMessageResponse = {
       reply: result.reply,

@@ -1,7 +1,17 @@
 // Provider abstraction. All AI text generation goes through this interface
 // so the model vendor can be swapped without touching routes/controllers.
 
-export type SupportedAssistantLanguage = 'en' | 'hi' | 'te';
+export type SupportedAssistantLanguage =
+  | 'en'
+  | 'hi'
+  | 'te'
+  | 'ta'
+  | 'kn'
+  | 'ml'
+  | 'kok';
+
+/** Accessibility needs forwarded from the user's profile. */
+export type AccessibilityNeed = 'visual' | 'hearing' | 'speech' | 'general';
 
 export interface ConversationTurn {
   role: 'user' | 'model';
@@ -13,6 +23,8 @@ export interface TextGenerationRequest {
   history: ConversationTurn[];
   language: SupportedAssistantLanguage;
   timeoutMs: number;
+  /** Optional: user's disability profile to personalize the system prompt. */
+  needs?: AccessibilityNeed[];
 }
 
 export interface TextGenerationResult {
@@ -35,6 +47,8 @@ export interface VisionGenerationRequest {
   history: ConversationTurn[];
   language: SupportedAssistantLanguage;
   timeoutMs: number;
+  /** Optional: user's disability profile to personalize the system prompt. */
+  needs?: AccessibilityNeed[];
 }
 
 export interface VisionGenerationResult {

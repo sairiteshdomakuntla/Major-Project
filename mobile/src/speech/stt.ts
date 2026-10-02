@@ -3,9 +3,15 @@ import type { SupportedLanguage } from '../profile/types';
 
 /** BCP-47 locales for on-device recognition. */
 export const STT_LOCALES: Record<SupportedLanguage, string> = {
-  en: 'en-US',
-  hi: 'hi-IN',
-  te: 'te-IN',
+  en:  'en-US',
+  hi:  'hi-IN',
+  te:  'te-IN',
+  ta:  'ta-IN',
+  kn:  'kn-IN',
+  ml:  'ml-IN',
+  // No dedicated BCP-47 tag for Konkani — fall back to Marathi locale which
+  // shares the Devanagari script and is the closest available option.
+  kok: 'mr-IN',
 };
 
 export type SttFailure =

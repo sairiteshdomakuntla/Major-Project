@@ -24,10 +24,16 @@ export interface AssistantHistoryTurn {
   text: string;
 }
 
+export type AssistantLanguage = 'en' | 'hi' | 'te' | 'ta' | 'kn' | 'ml' | 'kok';
+
+export type AccessibilityNeed = 'visual' | 'hearing' | 'speech' | 'general';
+
 export interface AssistantMessageRequest {
   message: string;
   history?: AssistantHistoryTurn[];
-  language?: 'en' | 'hi' | 'te';
+  language?: AssistantLanguage;
+  /** Optional: user's accessibility needs for personalised prompting. */
+  needs?: AccessibilityNeed[];
 }
 
 export interface AssistantMessageResponse {
@@ -52,7 +58,9 @@ export interface VisionAnalyzeRequest {
   mimeType: VisionMimeType;
   message: string;
   history?: VisionHistoryTurn[];
-  language?: 'en' | 'hi' | 'te';
+  language?: AssistantLanguage;
+  /** Optional: user's accessibility needs for personalised prompting. */
+  needs?: AccessibilityNeed[];
 }
 
 export interface VisionAnalyzeResponse {
