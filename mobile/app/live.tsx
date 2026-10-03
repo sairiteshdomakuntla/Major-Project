@@ -19,11 +19,13 @@ type CameraRef = React.ElementRef<typeof CameraView>;
 // Human-readable status text for the status bar.
 const STATUS_LABELS: Record<LiveStatus, string> = {
   idle: 'Tap Start to begin live narration.',
+  connecting: 'Connecting to server…',
   running: 'Watching…',
   capturing: 'Capturing frame…',
   analyzing: 'Analyzing what I see…',
   speaking: 'Speaking…',
   paused: 'Paused.',
+  reconnecting: 'Reconnecting…',
   error: 'Error — will retry.',
 };
 
@@ -35,7 +37,12 @@ function NarrationBubble({ item }: { item: LiveNarration }) {
       accessibilityLabel={`Narration: ${item.text}`}
       className="gap-1 rounded-2xl bg-slate-800/90 px-4 py-3"
     >
-      <Text className="text-xs font-medium text-sky-400">{ts}</Text>
+      <View className="flex-row items-center gap-2">
+        <Text className="text-xs font-medium text-sky-400">{ts}</Text>
+        {item.latencyMs !== undefined && (
+          <Text className="text-xs text-slate-500">{item.latencyMs}ms</Text>
+        )}
+      </View>
       <Text className="text-base leading-6 text-slate-50">{item.text}</Text>
     </View>
   );
@@ -53,6 +60,7 @@ export default function LiveScreen() {
     error,
     frameCount,
     language,
+    mode,
     isRunning,
     isPaused,
   } = session;
@@ -63,7 +71,7 @@ export default function LiveScreen() {
       try {
         const photo = await cameraRef.current?.takePictureAsync({
           base64: true,
-          quality: 0.35,
+          quality: 0.2,
           imageType: 'jpg',
           exif: false,
           skipProcessing: true,
@@ -97,6 +105,10 @@ export default function LiveScreen() {
   const showStart = status === 'idle';
   const showPauseResume = isRunning || isPaused;
 
+  // Connection mode indicator
+  const modeLabel = mode === 'websocket' ? '⚡ Real-time' : '🔄 Polling';
+  const modeColor = mode === 'websocket' ? 'text-emerald-400' : 'text-amber-400';
+
   return (
     <SafeAreaView className="flex-1 bg-slate-900">
       <StatusBar style="light" />
@@ -118,9 +130,16 @@ export default function LiveScreen() {
           <Text accessibilityRole="header" className="text-lg font-bold text-slate-50">
             Live narration
           </Text>
-          <Text className="text-xs text-slate-400">
-            {languageLabel(language)} · {frameCount} frames
-          </Text>
+          <View className="flex-row items-center gap-2">
+            <Text className="text-xs text-slate-400">
+              {languageLabel(language)} · {frameCount} frames
+            </Text>
+            {isRunning && (
+              <Text className={`text-xs font-medium ${modeColor}`}>
+                {modeLabel}
+              </Text>
+            )}
+          </View>
         </View>
         {(isRunning || isPaused) && (
           <Pressable
@@ -140,9 +159,14 @@ export default function LiveScreen() {
         accessibilityLabel={`Status: ${statusText}`}
         className="flex-row items-center gap-2 bg-slate-800 px-4 py-2.5"
       >
-        {isRunning && <ActivityIndicator size="small" color="#38BDF8" />}
+        {(isRunning || status === 'connecting' || status === 'reconnecting') && (
+          <ActivityIndicator size="small" color="#38BDF8" />
+        )}
         {isRunning && (
           <View className="h-2.5 w-2.5 rounded-full bg-green-400" />
+        )}
+        {status === 'reconnecting' && (
+          <View className="h-2.5 w-2.5 rounded-full bg-amber-400" />
         )}
         <Text className="flex-1 text-sm font-medium text-slate-100">
           {statusText}

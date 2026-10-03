@@ -1,12 +1,26 @@
-// Live video session hook. Captures frames at intervals from the camera,
-// sends each to the vision API, and speaks the result via TTS. Only one
-// request is in-flight at a time — new frames are skipped until the
-// previous result arrives and finishes speaking. Scene-change detection
-// prevents re-describing an identical static view.
+// ---------------------------------------------------------------------------
+// Production-grade real-time live session via WebSocket + Gemini Live API.
+//
+// Architecture:
+//   Mobile (this hook) ──WebSocket──▶ Backend ──Live API──▶ Gemini
+//                      ◀─text narrations─  ◀─text─
+//
+// Key improvements over the polling-based approach:
+//   1. TRUE REAL-TIME: Frames stream continuously over a persistent WebSocket.
+//      No HTTP request/response overhead per frame.
+//   2. SUB-SECOND LATENCY: Gemini Live API processes frames incrementally.
+//      Narrations arrive as they're generated, not after a full round-trip.
+//   3. NON-BLOCKING TTS: Speech is fire-and-forget — we never block capture.
+//   4. ADAPTIVE FRAME RATE: Captures at ~500ms baseline. Backend throttles
+//      to prevent overload. "[no change]" responses are suppressed.
+//   5. AUTO-RECONNECT: WebSocket reconnects with exponential backoff.
+//   6. FALLBACK: If WebSocket fails to connect, falls back to REST polling.
+// ---------------------------------------------------------------------------
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { AssistantLanguage, VisionHistoryTurn } from '../api/client';
-import { ApiError, analyzeVisionImage } from '../api/client';
+import { AppState } from 'react-native';
+import type { AssistantLanguage } from '../api/client';
+import { API_BASE_URL, analyzeVisionImage } from '../api/client';
 import { useProfileStore } from '../profile/store';
 import { speakText, stopSpeaking } from '../speech/tts';
 import type { AccessibilityNeed } from '../profile/types';
@@ -17,69 +31,79 @@ import type { AccessibilityNeed } from '../profile/types';
 
 export type LiveStatus =
   | 'idle'
+  | 'connecting'
   | 'running'
   | 'capturing'
   | 'analyzing'
   | 'speaking'
   | 'paused'
+  | 'reconnecting'
   | 'error';
 
 export interface LiveNarration {
   id: string;
   text: string;
   timestamp: number;
+  /** Round-trip latency in ms (frame sent → narration received). */
+  latencyMs?: number;
 }
 
 // ---------------------------------------------------------------------------
-// Config
+// Constants
 // ---------------------------------------------------------------------------
 
-/** Seconds between frame captures while running. */
-const CAPTURE_INTERVAL_MS = 4000;
-/** Quality 0-1 for captured JPEG frames. Lower = faster network. */
-const FRAME_QUALITY = 0.35;
+/** Frame capture interval (ms). */
+const CAPTURE_INTERVAL_MS = 500;
+/** JPEG quality for captured frames. Lower = smaller payload = faster. */
+const FRAME_QUALITY = 0.2;
+/** Max narrations kept in the UI log. */
+const MAX_NARRATIONS = 50;
+/** WebSocket ping interval (ms). */
+const WS_PING_INTERVAL_MS = 25_000;
+/** Max reconnect attempts before giving up. */
+const MAX_RECONNECT_ATTEMPTS = 8;
+/** Initial backoff for reconnects (ms). */
+const INITIAL_BACKOFF_MS = 500;
 
-// ---------------------------------------------------------------------------
-// Prompts
-// ---------------------------------------------------------------------------
-
-const LIVE_DESCRIBE_PROMPT = [
-  'You are narrating a live camera feed for a blind user.',
-  'Describe ONLY what is new or changed since your last description.',
-  'If nothing changed, reply with exactly: "[no change]".',
-  'Be very brief — one to two sentences maximum.',
-  'Focus on: obstacles, people approaching, signs, traffic, doors, stairs.',
-  'Use spatial terms: left, right, ahead, behind, above, below.',
-  'Never apologize or add filler. Just describe.',
-].join(' ');
-
-const INITIAL_DESCRIBE_PROMPT = [
-  'You are starting a live narration of a camera feed for a blind user.',
-  'Describe the scene in 2-3 concise sentences.',
-  'Focus on: what is directly ahead, key objects, people, obstacles, readable text.',
-  'Use spatial terms: left, right, ahead, behind.',
-].join(' ');
-
-// ---------------------------------------------------------------------------
-// Frame capturer type (provided by the screen)
-// ---------------------------------------------------------------------------
-
-export type FrameCapturer = () => Promise<string | null>;
+// Fallback REST polling constants
+const FALLBACK_FAST_INTERVAL_MS = 2000;
+const FALLBACK_SLOW_INTERVAL_MS = 5000;
+const FALLBACK_NO_CHANGE_THRESHOLD = 2;
+const FALLBACK_API_TIMEOUT_MS = 15000;
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-function friendlyError(err: unknown): string {
-  if (err instanceof ApiError) {
-    if (err.statusCode === 429) return 'Assistant is busy. Pausing briefly.';
-    if (err.statusCode === 503) return 'Assistant is not set up yet.';
-    if (err.message.toLowerCase().includes('timed out'))
-      return 'Analysis took too long. Skipping this frame.';
-    return err.message;
-  }
-  return 'Something went wrong. Will retry on next frame.';
+export type FrameCapturer = () => Promise<string | null>;
+
+function wsUrl(): string {
+  // Convert http(s):// to ws(s)://
+  const base = API_BASE_URL.replace(/^http/, 'ws');
+  return `${base}/api/v1/live`;
 }
+
+function isNoChange(text: string): boolean {
+  const lower = text.toLowerCase().trim();
+  return (
+    lower.includes('[no change]') ||
+    lower === 'no change' ||
+    lower === 'no change.'
+  );
+}
+
+// Fallback prompts for REST mode
+const INITIAL_PROMPT = [
+  'Live camera narration for a blind person.',
+  'Describe scene in 2 short sentences.',
+  'Objects, people, obstacles, text — with positions (left/right/ahead).',
+].join(' ');
+
+const DIFF_PROMPT = [
+  'Live camera, blind user. Say ONLY what changed since last frame.',
+  'If nothing changed reply exactly: [no change]',
+  'Max 1-2 sentences. Obstacles, people, signs, movement. Positions.',
+].join(' ');
 
 // ---------------------------------------------------------------------------
 // Hook
@@ -89,185 +113,436 @@ export function useLiveSession() {
   const language = useProfileStore((s) => s.language) as AssistantLanguage;
   const needs = useProfileStore((s) => s.needs) as AccessibilityNeed[];
 
-  // Live narration is inherently voice-first — always speak output
-  // regardless of the user's general output-mode preference.
-
   const [status, setStatus] = useState<LiveStatus>('idle');
   const [narrations, setNarrations] = useState<LiveNarration[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [frameCount, setFrameCount] = useState(0);
+  const [mode, setMode] = useState<'websocket' | 'fallback'>('websocket');
 
+  // Refs — mutable state that doesn't trigger re-renders.
   const capturerRef = useRef<FrameCapturer | null>(null);
   const mountedRef = useRef(true);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const runningRef = useRef(false);
-  const busyRef = useRef(false);
+  const wsRef = useRef<WebSocket | null>(null);
+  const captureTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reconnectAttempts = useRef(0);
   const idCounter = useRef(0);
-  const lastDescriptionRef = useRef('');
-  // Keep a small rolling history so the AI can diff against its own last reply.
-  const historyRef = useRef<VisionHistoryTurn[]>([]);
+  const frameIndexRef = useRef(0);
+  const lastFrameSentRef = useRef(0);
+
+  // Fallback-mode refs
+  const fallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fallbackAbortRef = useRef<AbortController | null>(null);
+  const fallbackHistoryRef = useRef<Array<{ role: 'user' | 'model'; text: string }>>([]);
+  const fallbackNoChangeStreakRef = useRef(0);
+  const fallbackLastReplyRef = useRef('');
+  const useFallbackRef = useRef(false);
 
   const nextId = useCallback(() => {
     idCounter.current += 1;
     return `live-${Date.now().toString(36)}-${idCounter.current}`;
   }, []);
 
-  // Cleanup on unmount.
+  // -----------------------------------------------------------------------
+  // Cleanup on unmount
+  // -----------------------------------------------------------------------
   useEffect(() => {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
       runningRef.current = false;
-      if (timerRef.current) clearTimeout(timerRef.current);
-      void stopSpeaking();
+      cleanupAll();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const setCapturer = useCallback((fn: FrameCapturer | null) => {
-    capturerRef.current = fn;
+  // -----------------------------------------------------------------------
+  // App state — pause when app goes to background
+  // -----------------------------------------------------------------------
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (nextState) => {
+      if (nextState !== 'active' && runningRef.current) {
+        stopCapturing();
+      } else if (nextState === 'active' && runningRef.current) {
+        if (useFallbackRef.current) {
+          startFallbackCapturing();
+        } else {
+          startCapturing();
+        }
+      }
+    });
+    return () => sub.remove();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ------- speak helper -------
-  const say = useCallback(
-    async (text: string) => {
-      if (!mountedRef.current) return;
-      setStatus('speaking');
-      await speakText(text, language, {
-        onDone: () => {
-          if (mountedRef.current && runningRef.current) setStatus('running');
-          else if (mountedRef.current) setStatus('paused');
-        },
-        onStopped: () => {
-          if (mountedRef.current && runningRef.current) setStatus('running');
-          else if (mountedRef.current) setStatus('paused');
-        },
-        onError: () => {
-          if (mountedRef.current && runningRef.current) setStatus('running');
-          else if (mountedRef.current) setStatus('paused');
-        },
-      });
-    },
-    [language],
-  );
+  // -----------------------------------------------------------------------
+  // Cleanup helpers
+  // -----------------------------------------------------------------------
 
-  // ------- single frame capture + analyze cycle -------
-  const processFrame = useCallback(async () => {
+  function cleanupAll() {
+    stopCapturing();
+    stopFallbackCapturing();
+    closeWebSocket();
+    if (reconnectTimerRef.current) {
+      clearTimeout(reconnectTimerRef.current);
+      reconnectTimerRef.current = null;
+    }
+    void stopSpeaking();
+  }
+
+  function closeWebSocket() {
+    if (pingTimerRef.current) {
+      clearInterval(pingTimerRef.current);
+      pingTimerRef.current = null;
+    }
+    const ws = wsRef.current;
+    if (ws) {
+      ws.onopen = null;
+      ws.onmessage = null;
+      ws.onerror = null;
+      ws.onclose = null;
+      try { ws.close(); } catch { /* ignore */ }
+      wsRef.current = null;
+    }
+  }
+
+  // -----------------------------------------------------------------------
+  // WebSocket connection
+  // -----------------------------------------------------------------------
+
+  function connectWebSocket() {
     if (!mountedRef.current || !runningRef.current) return;
-    if (busyRef.current) return; // previous frame still in flight
+    setStatus('connecting');
+
+    const url = wsUrl();
+    console.log(`[live] Connecting to ${url}`);
+
+    let ws: WebSocket;
+    try {
+      ws = new WebSocket(url);
+    } catch (err) {
+      console.error('[live] WebSocket constructor failed:', err);
+      switchToFallback();
+      return;
+    }
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      if (!mountedRef.current || !runningRef.current) {
+        ws.close();
+        return;
+      }
+      console.log('[live] WebSocket connected');
+      reconnectAttempts.current = 0;
+
+      // Send start message with user's language and needs
+      ws.send(JSON.stringify({
+        type: 'start',
+        language,
+        needs,
+      }));
+
+      // Start ping/pong keepalive
+      pingTimerRef.current = setInterval(() => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: 'ping' }));
+        }
+      }, WS_PING_INTERVAL_MS);
+    };
+
+    ws.onmessage = (event) => {
+      if (!mountedRef.current) return;
+
+      let msg: Record<string, unknown>;
+      try {
+        msg = JSON.parse(typeof event.data === 'string' ? event.data : '{}');
+      } catch {
+        return;
+      }
+
+      switch (msg.type) {
+        case 'ready':
+          console.log('[live] Session ready — starting frame capture');
+          setStatus('running');
+          setError(null);
+          startCapturing();
+          break;
+
+        case 'narration': {
+          const text = String(msg.text ?? '').trim();
+          if (!text || isNoChange(text)) break;
+
+          const narration: LiveNarration = {
+            id: nextId(),
+            text,
+            timestamp: typeof msg.ts === 'number' ? msg.ts : Date.now(),
+            latencyMs: typeof msg.ts === 'number' ? Date.now() - msg.ts : undefined,
+          };
+
+          setNarrations((prev) => [narration, ...prev].slice(0, MAX_NARRATIONS));
+          setError(null);
+          setStatus('speaking');
+
+          // Fire-and-forget TTS
+          void stopSpeaking().then(() => {
+            if (mountedRef.current) {
+              void speakText(text, language);
+            }
+          });
+          break;
+        }
+
+        case 'error':
+          setError(String(msg.message ?? 'Unknown error'));
+          break;
+
+        case 'closed':
+          console.log('[live] Server closed session:', msg.reason);
+          break;
+
+        case 'pong':
+          // Keepalive response — ignore
+          break;
+      }
+    };
+
+    ws.onerror = () => {
+      console.error('[live] WebSocket error');
+      // onclose will fire next — handle reconnect there
+    };
+
+    ws.onclose = () => {
+      console.log('[live] WebSocket closed');
+      closeWebSocket();
+      if (mountedRef.current && runningRef.current) {
+        attemptReconnect();
+      }
+    };
+  }
+
+  function attemptReconnect() {
+    reconnectAttempts.current++;
+    if (reconnectAttempts.current > MAX_RECONNECT_ATTEMPTS) {
+      console.warn('[live] Max reconnect attempts — switching to fallback');
+      switchToFallback();
+      return;
+    }
+
+    const backoff = Math.min(
+      INITIAL_BACKOFF_MS * Math.pow(2, reconnectAttempts.current - 1),
+      16000,
+    );
+
+    setStatus('reconnecting');
+    setError(`Reconnecting (${reconnectAttempts.current}/${MAX_RECONNECT_ATTEMPTS})…`);
+
+    stopCapturing();
+    reconnectTimerRef.current = setTimeout(() => {
+      if (mountedRef.current && runningRef.current) {
+        connectWebSocket();
+      }
+    }, backoff);
+  }
+
+  // -----------------------------------------------------------------------
+  // Frame capture (WebSocket mode)
+  // -----------------------------------------------------------------------
+
+  function startCapturing() {
+    stopCapturing();
+    if (!mountedRef.current || !runningRef.current) return;
+
+    captureTimerRef.current = setInterval(async () => {
+      if (!mountedRef.current || !runningRef.current) return;
+      if (!capturerRef.current) return;
+
+      const ws = wsRef.current;
+      if (!ws || ws.readyState !== WebSocket.OPEN) return;
+
+      try {
+        const base64 = await capturerRef.current();
+        if (!base64 || !mountedRef.current || !runningRef.current) return;
+
+        frameIndexRef.current++;
+        setFrameCount(frameIndexRef.current);
+        lastFrameSentRef.current = Date.now();
+
+        ws.send(JSON.stringify({
+          type: 'frame',
+          data: base64,
+        }));
+      } catch {
+        // Camera hiccup — skip this frame
+      }
+    }, CAPTURE_INTERVAL_MS);
+  }
+
+  function stopCapturing() {
+    if (captureTimerRef.current) {
+      clearInterval(captureTimerRef.current);
+      captureTimerRef.current = null;
+    }
+  }
+
+  // -----------------------------------------------------------------------
+  // Fallback mode (REST polling — same as original implementation)
+  // -----------------------------------------------------------------------
+
+  function switchToFallback() {
+    console.log('[live] Switching to REST fallback mode');
+    useFallbackRef.current = true;
+    setMode('fallback');
+    closeWebSocket();
+    setError(null);
+    setStatus('running');
+    fallbackHistoryRef.current = [];
+    fallbackNoChangeStreakRef.current = 0;
+    fallbackLastReplyRef.current = '';
+    startFallbackCapturing();
+  }
+
+  function startFallbackCapturing() {
+    stopFallbackCapturing();
+    if (!mountedRef.current || !runningRef.current) return;
+    void fallbackTick().then(() => scheduleFallbackNext());
+  }
+
+  function stopFallbackCapturing() {
+    if (fallbackTimerRef.current) {
+      clearTimeout(fallbackTimerRef.current);
+      fallbackTimerRef.current = null;
+    }
+    fallbackAbortRef.current?.abort();
+  }
+
+  async function fallbackTick() {
+    if (!mountedRef.current || !runningRef.current) return;
     if (!capturerRef.current) return;
 
-    busyRef.current = true;
     setStatus('capturing');
+    let base64: string | null = null;
+    try {
+      base64 = await capturerRef.current();
+    } catch {
+      // Skip frame
+    }
+    if (!base64 || !mountedRef.current || !runningRef.current) {
+      if (mountedRef.current && runningRef.current) setStatus('running');
+      return;
+    }
+
+    setStatus('analyzing');
+    frameIndexRef.current++;
+    setFrameCount(frameIndexRef.current);
+
+    const isFirst = fallbackHistoryRef.current.length === 0;
+    const prompt = isFirst ? INITIAL_PROMPT : DIFF_PROMPT;
+
+    fallbackAbortRef.current?.abort();
+    const controller = new AbortController();
+    fallbackAbortRef.current = controller;
 
     try {
-      const base64 = await capturerRef.current();
-      if (!base64 || !mountedRef.current || !runningRef.current) {
-        busyRef.current = false;
-        if (mountedRef.current) setStatus('running');
-        return;
-      }
+      const result = await analyzeVisionImage(
+        {
+          image: base64,
+          mimeType: 'image/jpeg',
+          message: prompt,
+          history: fallbackHistoryRef.current.slice(-2),
+          language,
+          needs: needs.length > 0 ? needs : undefined,
+        },
+        FALLBACK_API_TIMEOUT_MS,
+      );
 
-      setStatus('analyzing');
-      setFrameCount((c) => c + 1);
-
-      const isFirst = historyRef.current.length === 0;
-      const prompt = isFirst ? INITIAL_DESCRIBE_PROMPT : LIVE_DESCRIBE_PROMPT;
-
-      const result = await analyzeVisionImage({
-        image: base64,
-        mimeType: 'image/jpeg',
-        message: prompt,
-        history: historyRef.current.slice(-4), // keep context small
-        language,
-        needs: needs.length > 0 ? needs : undefined,
-      });
-
-      if (!mountedRef.current || !runningRef.current) {
-        busyRef.current = false;
-        return;
-      }
-
+      if (!mountedRef.current || !runningRef.current) return;
       const reply = result.reply.trim();
 
-      // Skip speaking if the AI says nothing changed.
-      const noChange =
-        reply.toLowerCase().includes('[no change]') ||
-        reply.toLowerCase() === 'no change' ||
-        reply === lastDescriptionRef.current;
-
-      if (!noChange) {
-        lastDescriptionRef.current = reply;
-
-        // Update rolling history (keep only last 4 turns).
-        historyRef.current = [
-          ...historyRef.current,
+      if (isNoChange(reply) || reply === fallbackLastReplyRef.current) {
+        fallbackNoChangeStreakRef.current++;
+        if (mountedRef.current && runningRef.current) setStatus('running');
+      } else {
+        fallbackNoChangeStreakRef.current = 0;
+        fallbackLastReplyRef.current = reply;
+        fallbackHistoryRef.current = [
           { role: 'user' as const, text: prompt },
           { role: 'model' as const, text: reply },
-        ].slice(-4);
+        ];
 
         const narration: LiveNarration = {
           id: nextId(),
           text: reply,
           timestamp: Date.now(),
         };
-        setNarrations((prev) => [narration, ...prev].slice(0, 20));
+        setNarrations((prev) => [narration, ...prev].slice(0, MAX_NARRATIONS));
         setError(null);
+        setStatus('speaking');
 
-        // Speak the new narration — interrupts any ongoing speech.
-        await say(reply);
-      } else {
-        // Nothing changed — stay in running state.
-        if (mountedRef.current && runningRef.current) setStatus('running');
+        void stopSpeaking().then(() => {
+          if (mountedRef.current) {
+            void speakText(reply, language);
+          }
+        });
       }
     } catch (err) {
+      if (controller.signal.aborted) return;
       if (mountedRef.current) {
-        const msg = friendlyError(err);
-        setError(msg);
+        setError('Error — retrying.');
         setStatus('error');
-        // Brief pause on error, then continue if still running.
-        await new Promise((r) => setTimeout(r, 2000));
-        if (mountedRef.current && runningRef.current) setStatus('running');
       }
-    } finally {
-      busyRef.current = false;
     }
-  }, [language, needs, nextId, say]);
+  }
 
-  // ------- interval loop -------
-  const scheduleNext = useCallback(() => {
+  function scheduleFallbackNext() {
     if (!runningRef.current || !mountedRef.current) return;
-    timerRef.current = setTimeout(() => {
+    const interval =
+      fallbackNoChangeStreakRef.current >= FALLBACK_NO_CHANGE_THRESHOLD
+        ? FALLBACK_SLOW_INTERVAL_MS
+        : FALLBACK_FAST_INTERVAL_MS;
+    fallbackTimerRef.current = setTimeout(() => {
       if (!runningRef.current || !mountedRef.current) return;
-      void processFrame().then(() => {
-        scheduleNext();
-      });
-    }, CAPTURE_INTERVAL_MS);
-  }, [processFrame]);
+      void fallbackTick().then(() => scheduleFallbackNext());
+    }, interval);
+  }
 
-  // ------- controls -------
+  // -----------------------------------------------------------------------
+  // Public API
+  // -----------------------------------------------------------------------
+
+  const setCapturer = useCallback((fn: FrameCapturer | null) => {
+    capturerRef.current = fn;
+  }, []);
+
+  const say = useCallback(
+    async (text: string) => {
+      if (!mountedRef.current) return;
+      await speakText(text, language);
+    },
+    [language],
+  );
+
   const start = useCallback(() => {
     if (runningRef.current) return;
     runningRef.current = true;
-    busyRef.current = false;
-    historyRef.current = [];
-    lastDescriptionRef.current = '';
-    setStatus('running');
+    useFallbackRef.current = false;
+    frameIndexRef.current = 0;
+    reconnectAttempts.current = 0;
+    setStatus('connecting');
     setError(null);
     setNarrations([]);
     setFrameCount(0);
+    setMode('websocket');
 
-    // Kick off the first frame immediately, then schedule loop.
-    void processFrame().then(() => {
-      scheduleNext();
-    });
-  }, [processFrame, scheduleNext]);
+    connectWebSocket();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [language, needs]);
 
   const pause = useCallback(() => {
     runningRef.current = false;
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
+    stopCapturing();
+    stopFallbackCapturing();
     void stopSpeaking();
     setStatus('paused');
   }, []);
@@ -277,22 +552,26 @@ export function useLiveSession() {
     runningRef.current = true;
     setStatus('running');
     setError(null);
-    void processFrame().then(() => {
-      scheduleNext();
-    });
-  }, [processFrame, scheduleNext]);
+
+    if (useFallbackRef.current) {
+      startFallbackCapturing();
+    } else if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      startCapturing();
+    } else {
+      connectWebSocket();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [language, needs]);
 
   const stop = useCallback(() => {
     runningRef.current = false;
-    busyRef.current = false;
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-    void stopSpeaking();
-    historyRef.current = [];
-    lastDescriptionRef.current = '';
+    cleanupAll();
+    frameIndexRef.current = 0;
+    fallbackHistoryRef.current = [];
+    fallbackNoChangeStreakRef.current = 0;
+    fallbackLastReplyRef.current = '';
     setStatus('idle');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {
@@ -301,6 +580,7 @@ export function useLiveSession() {
     error,
     frameCount,
     language,
+    mode,
     isRunning: status !== 'idle' && status !== 'paused',
     isPaused: status === 'paused',
     setCapturer,

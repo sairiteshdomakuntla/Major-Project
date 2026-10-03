@@ -20,31 +20,6 @@ export interface SpeakCallbacks {
   onError?: (message: string) => void;
 }
 
-/**
- * iOS silences expo-speech when the physical ringer switch is off.
- * Setting the audio mode once forces playback through the speaker.
- *
- * expo-av contains a native module that is NOT available in Expo Go,
- * so we dynamic-import it and swallow failures gracefully.
- */
-let audioModeConfigured = false;
-async function ensureAudioMode(): Promise<void> {
-  if (audioModeConfigured) return;
-  try {
-    const { Audio } = await import('expo-av');
-    await Audio.setAudioModeAsync({
-      playsInSilentModeIOS: true,
-      allowsRecordingIOS: false,
-      staysActiveInBackground: false,
-      shouldDuckAndroid: true,
-    });
-    audioModeConfigured = true;
-  } catch {
-    // expo-av not available (Expo Go) — speech still works when ringer is on.
-    audioModeConfigured = true; // don't retry every call
-  }
-}
-
 /** Speaks text aloud, stopping anything currently playing first. */
 export async function speakText(
   text: string,
@@ -53,9 +28,6 @@ export async function speakText(
 ): Promise<void> {
   const trimmed = text.trim();
   if (trimmed.length === 0) return;
-
-  // Ensure iOS audio session is configured for audible playback.
-  await ensureAudioMode();
 
   try {
     await Speech.stop();
