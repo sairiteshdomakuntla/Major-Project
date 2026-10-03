@@ -1,4 +1,4 @@
-﻿# AgentBridge — Feature Progress Tracker
+# AgentBridge — Feature Progress Tracker
 
 > **Legend** · ? Implemented · ?? Partial / Stub · ? Not started
 
@@ -25,9 +25,10 @@ _Last updated: 2026-10-02_
 | `accessibilityRole` on buttons, headers, inputs | ? | All screens |
 | `accessibilityLiveRegion="polite"` for assistant "thinking" indicator | ? | `app/assistant.tsx` |
 | `accessibilityState={{ disabled }}` on send button | ? | `app/assistant.tsx` |
-| Vision screen — describe surroundings via AI camera | ? | `app/vision.tsx` + `src/vision/useVisionSession.ts` |
-| Vision screen — read visible text (OCR via Gemini Vision) | ? | `src/vision/useVisionSession.ts` (`READ_PROMPT`) |
-| Vision screen — locate/find objects by name | ? | `src/vision/useVisionSession.ts` (`findPrompt`) |
+| Vision screen — describe surroundings via AI camera | ✅ | `app/vision.tsx` + `src/vision/useVisionSession.ts` |
+| Vision screen — read visible text (OCR via Gemini Vision) | ✅ | `src/vision/useVisionSession.ts` (`READ_PROMPT`) |
+| Vision screen — locate/find objects by name | ✅ | `src/vision/useVisionSession.ts` (`findPrompt`) |
+| Live camera narration — continuous real-time narration via WebSocket | ✅ | `app/live.tsx` + `src/vision/useLiveSession.ts` + `backend/src/live/` |
 | TTS — spoken response after every vision analysis | ? | `src/speech/tts.ts` ? `speakText()` |
 | TTS — EN / HI / TE language support | ? | `src/speech/tts.ts` (`VOICE_LANGUAGE`) |
 | Voice commands for the vision screen (describe / read / find / stop / repeat) | ? | `src/vision/voiceCommands.ts` |
@@ -151,6 +152,7 @@ _Last updated: 2026-10-02_
 |---|---|---|
 | **Master Agent** — orchestration, intent detection, routing | ? Full | ? Wired via `/api/v1/assistant/message` |
 | **Vision Agent** — Gemini multimodal | ? Routed through Master (`handleVision`); dedicated `agents/vision/index.ts` is a stub | ? Wired via `/api/v1/vision/analyze` |
+| **Live Vision Streaming** — Real-time camera feed narration | ✅ Dedicated WebSocket streaming session (`liveWebSocket.ts`, `liveSessionManager.ts`) | ✅ Wired via `ws://.../api/v1/live` + `useLiveSession.ts` |
 | **Speech Agent** — STT + TTS | ?? Backend stub only (`agents/speech/index.ts`) | ? Fully implemented client-side (`stt.ts`, `tts.ts`) |
 | **Translation Agent** | ?? Backend stub only (`agents/translation/index.ts`) | ? No dedicated translation UI/flow |
 
@@ -158,6 +160,7 @@ _Last updated: 2026-10-02_
 ```
 text-chat   ? true   ? live
 vision      ? true   ? live
+live-vision ? true   ? live
 speech      ? false  ?? client-side only; backend agent pending
 translation ? false  ? pending
 ```
@@ -167,6 +170,7 @@ _Source: `backend/src/agents/master/index.ts` ? `CAPABILITY_AVAILABILITY`_
 | Provider | Status | Notes |
 |---|---|---|
 | Gemini (`@google/genai`) | ? | `GeminiProvider` — text + vision; model via `GEMINI_MODEL` env |
+| Live Vision Pipeline | ✅ | Multi-model fallback (`gemini-3.5-flash-lite`, `gemini-2.5-flash`, `gemini-flash-latest`) |
 | Provider abstraction (`AITextProvider` / `AIVisionProvider`) | ? | `backend/src/providers/aiProvider.ts` — easy to swap |
 | OpenAI / other provider | ? | Interface ready; no second implementation |
 
@@ -177,6 +181,7 @@ _Source: `backend/src/agents/master/index.ts` ? `CAPABILITY_AVAILABILITY`_
 | Item | Status | Notes |
 |---|---|---|
 | Express REST API (Node.js + TypeScript) | ? | `backend/src/` |
+| WebSocket Server (`ws`) | ✅ | `backend/src/live/liveWebSocket.ts` mounted on `/api/v1/live` |
 | Expo React Native app (SDK 57 + Expo Router) | ? | `mobile/` |
 | NativeWind v4 (Tailwind CSS for RN) | ? | `tailwind.config.js`, `babel.config.js`, `metro.config.js` |
 | TanStack Query for async state | ? | `src/vision/useVisionSession.ts` |
