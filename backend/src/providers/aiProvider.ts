@@ -49,6 +49,8 @@ export interface VisionGenerationRequest {
   timeoutMs: number;
   /** Optional: user's disability profile to personalize the system prompt. */
   needs?: AccessibilityNeed[];
+  /** Optional custom system instruction for specialized vision agents (e.g. image translation). */
+  systemInstruction?: string;
 }
 
 export interface VisionGenerationResult {

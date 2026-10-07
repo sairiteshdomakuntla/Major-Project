@@ -9,7 +9,8 @@ export function createApp(): express.Express {
   const app = express();
 
   app.use(cors({ origin: config.corsOrigin }));
-  app.use(express.json({ limit: '1mb' }));
+  // Allow up to 20mb for base64 camera image uploads
+  app.use(express.json({ limit: '20mb' }));
   app.use(morgan(config.logLevel === 'dev' ? 'dev' : 'combined'));
 
   app.use(router);

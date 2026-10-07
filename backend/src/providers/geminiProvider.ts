@@ -144,7 +144,10 @@ export class GeminiProvider implements AITextProvider, AIVisionProvider {
     const attempt = client.models.generateContent({
       model: this.model,
       contents,
-      config: { systemInstruction: buildVisionInstruction(req.language, req.needs) },
+      config: {
+        systemInstruction:
+          req.systemInstruction ?? buildVisionInstruction(req.language, req.needs),
+      },
     });
 
     let response;

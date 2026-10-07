@@ -10,6 +10,8 @@ export function getRoot(_req: Request, res: Response): void {
       'GET /api/v1',
       'POST /api/v1/assistant/message',
       'POST /api/v1/vision/analyze',
+      'POST /api/v1/translate',
+      'POST /api/v1/translate/image',
     ],
   });
 }
@@ -32,6 +34,8 @@ export function getApiInfo(_req: Request, res: Response): void {
       'GET /api/v1',
       'POST /api/v1/assistant/message',
       'POST /api/v1/vision/analyze',
+      'POST /api/v1/translate',
+      'POST /api/v1/translate/image',
     ],
   };
   res.status(200).json(body);

@@ -32,7 +32,7 @@ export const CAPABILITY_AVAILABILITY: Record<AssistantCapability, boolean> = {
   'text-chat': true,
   vision: true,
   speech: false,
-  translation: false,
+  translation: true,
 };
 
 export interface MasterAgentRequest {

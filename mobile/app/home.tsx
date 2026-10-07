@@ -28,12 +28,7 @@ function Chip({ label }: { label: string }) {
   );
 }
 
-const COMING_NEXT = [
-  {
-    title: 'Translate',
-    description: 'Move between Indian languages with ease.',
-  },
-];
+const COMING_NEXT: { title: string; description: string }[] = [];
 
 export default function HomeScreen() {
   const needs = useProfileStore((s) => s.needs);
@@ -186,40 +181,64 @@ export default function HomeScreen() {
             ›
           </Text>
         </Pressable>
-        <View className="gap-3 rounded-2xl bg-slate-800 p-4">
-          <Text
-            accessibilityRole="header"
-            className="text-base font-semibold text-slate-100"
-          >
-            Coming next
-          </Text>
-          <View className="gap-3">
-            {COMING_NEXT.map((item) => (
-              <View
-                key={item.title}
-                accessibilityLabel={`${item.title}. ${item.description} Coming soon, not available yet.`}
-                className="flex-row items-center gap-3 rounded-xl bg-slate-800/60"
-              >
-                <View className="flex-1 gap-0.5">
-                  <Text className="text-sm font-semibold text-slate-200">
-                    {item.title}
-                  </Text>
-                  <Text className="text-xs leading-4 text-slate-500">
-                    {item.description}
-                  </Text>
-                </View>
-                <View
-                  importantForAccessibility="no"
-                  className="rounded-full border border-slate-600 px-2.5 py-1"
-                >
-                  <Text className="text-[11px] font-semibold text-slate-400">
-                    Soon
-                  </Text>
-                </View>
-              </View>
-            ))}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Open translator. Translate between Indian languages."
+          accessibilityHint="Opens the translation screen"
+          onPress={() => router.push('/translate')}
+          className="flex-row items-center gap-3 rounded-2xl bg-violet-600 p-4 active:opacity-80"
+        >
+          <View className="flex-1 gap-0.5">
+            <Text className="text-base font-bold text-white">
+              Translate
+            </Text>
+            <Text className="text-sm leading-5 text-violet-100">
+              Move between Indian languages with ease.
+            </Text>
           </View>
-        </View>
+          <Text
+            importantForAccessibility="no"
+            className="text-2xl font-bold text-white"
+          >
+            ›
+          </Text>
+        </Pressable>
+        {COMING_NEXT.length > 0 && (
+          <View className="gap-3 rounded-2xl bg-slate-800 p-4">
+            <Text
+              accessibilityRole="header"
+              className="text-base font-semibold text-slate-100"
+            >
+              Coming next
+            </Text>
+            <View className="gap-3">
+              {COMING_NEXT.map((item) => (
+                <View
+                  key={item.title}
+                  accessibilityLabel={`${item.title}. ${item.description} Coming soon, not available yet.`}
+                  className="flex-row items-center gap-3 rounded-xl bg-slate-800/60"
+                >
+                  <View className="flex-1 gap-0.5">
+                    <Text className="text-sm font-semibold text-slate-200">
+                      {item.title}
+                    </Text>
+                    <Text className="text-xs leading-4 text-slate-500">
+                      {item.description}
+                    </Text>
+                  </View>
+                  <View
+                    importantForAccessibility="no"
+                    className="rounded-full border border-slate-600 px-2.5 py-1"
+                  >
+                    <Text className="text-[11px] font-semibold text-slate-400">
+                      Soon
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
 
         {/* Existing backend connectivity — preserved */}
         <ConnectivityCard />

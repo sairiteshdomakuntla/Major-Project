@@ -9,7 +9,7 @@ import {
 import { GeminiProvider } from '../providers/geminiProvider.js';
 import type { VisionAnalyzeRequest } from '../types/index.js';
 
-export const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+export const MAX_IMAGE_BYTES = 15 * 1024 * 1024;
 export const MAX_VISION_MESSAGE_CHARS = 4000;
 export const MAX_VISION_HISTORY_TURNS = 20;
 export const DEFAULT_VISION_PROMPT =

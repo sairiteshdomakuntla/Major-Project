@@ -163,3 +163,81 @@ export function analyzeVisionImage(
     body: req,
   });
 }
+
+// ── Translation ──
+
+export interface TranslateRequest {
+  /** The text to translate. */
+  text: string;
+  /** Source language code. */
+  from: AssistantLanguage;
+  /** Target language code. */
+  to: AssistantLanguage;
+  /** User's accessibility needs — forwarded to backend for prompt tuning. */
+  needs?: AccessibilityNeed[];
+}
+
+export interface TranslateResponse {
+  translatedText: string;
+  from: string;
+  to: string;
+  model: string;
+}
+
+/** Translation calls — default timeout is 30s. */
+export function sendTranslateRequest(
+  req: TranslateRequest,
+  timeoutMs = 30000,
+): Promise<TranslateResponse> {
+  return fetchJson<TranslateResponse>('/api/v1/translate', timeoutMs, {
+    method: 'POST',
+    body: req,
+  });
+}
+
+export interface FocusRegion {
+  /** 0 to 1 normalized horizontal start (left) */
+  x: number;
+  /** 0 to 1 normalized vertical start (top) */
+  y: number;
+  /** 0 to 1 normalized width */
+  width: number;
+  /** 0 to 1 normalized height */
+  height: number;
+}
+
+export interface TranslateImageRequest {
+  /** Base64 image data (data-URL prefix optional). */
+  image: string;
+  mimeType?: 'image/jpeg' | 'image/png' | 'image/webp';
+  /** Target language code to translate into. */
+  targetLanguage: AssistantLanguage;
+  /** Optional source language code if known. */
+  sourceLanguage?: AssistantLanguage;
+  /** User's accessibility needs — forwarded for prompt tuning. */
+  needs?: AccessibilityNeed[];
+  /** Optional: user-selected focus bounding box to zero-in on specific text. */
+  focusRegion?: FocusRegion;
+}
+
+export interface TranslateImageResponse {
+  extractedText: string;
+  translatedText: string;
+  itemSummary: string;
+  detectedLanguage?: string;
+  targetLanguage: string;
+  model: string;
+}
+
+/** Image translation calls (vision OCR + translation) — default timeout is 60s. */
+export function sendTranslateImageRequest(
+  req: TranslateImageRequest,
+  timeoutMs = 60000,
+): Promise<TranslateImageResponse> {
+  return fetchJson<TranslateImageResponse>('/api/v1/translate/image', timeoutMs, {
+    method: 'POST',
+    body: req,
+  });
+}
+
+
