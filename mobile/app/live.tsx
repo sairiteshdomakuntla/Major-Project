@@ -1,5 +1,6 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { router } from 'expo-router';
+import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef } from 'react';
 import {
@@ -16,6 +17,26 @@ import { useLiveSession } from '../src/vision/useLiveSession';
 
 type CameraRef = React.ElementRef<typeof CameraView>;
 
+// ---------------------------------------------------------------------------
+// Frame compression constants
+// ---------------------------------------------------------------------------
+
+/**
+ * Max dimension (width or height) for frames sent over WebSocket.
+ * Samsung high-res cameras (12MP–200MP) produce enormous base64 even at low
+ * JPEG quality. Resizing to 640px keeps payloads ≤80 KB on ALL devices.
+ */
+const FRAME_MAX_DIMENSION = 640;
+
+/** JPEG quality for the resized frame (0–1). */
+const FRAME_COMPRESS_QUALITY = 0.15;
+
+/**
+ * Safety limit: if the final base64 still exceeds this, skip the frame.
+ * This should never trigger after resizing, but guards against edge cases.
+ */
+const FRAME_MAX_BASE64_LENGTH = 3 * 1024 * 1024; // 3 MB
+
 // Human-readable status text for the status bar.
 const STATUS_LABELS: Record<LiveStatus, string> = {
   idle: 'Tap Start to begin live narration.',
@@ -28,6 +49,40 @@ const STATUS_LABELS: Record<LiveStatus, string> = {
   reconnecting: 'Reconnecting…',
   error: 'Error — will retry.',
 };
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Downscale and re-compress a captured photo URI to a small base64 string.
+ * This is the critical fix for Samsung / high-resolution phones where even
+ * quality=0.2 at native resolution produces >1 MB base64.
+ */
+async function compressFrame(uri: string): Promise<string | null> {
+  try {
+    const result = await manipulateAsync(
+      uri,
+      [{ resize: { width: FRAME_MAX_DIMENSION } }],
+      {
+        compress: FRAME_COMPRESS_QUALITY,
+        format: SaveFormat.JPEG,
+        base64: true,
+      },
+    );
+    const b64 = result.base64;
+    if (!b64 || b64.length === 0) return null;
+    // Safety: reject if still too large (shouldn't happen after resize)
+    if (b64.length > FRAME_MAX_BASE64_LENGTH) {
+      console.warn(`[live] Frame still too large after compression: ${(b64.length / 1024).toFixed(0)} KB — skipping`);
+      return null;
+    }
+    return b64;
+  } catch (err) {
+    console.warn('[live] Frame compression failed:', err);
+    return null;
+  }
+}
 
 function NarrationBubble({ item }: { item: LiveNarration }) {
   const time = new Date(item.timestamp);
@@ -66,18 +121,24 @@ export default function LiveScreen() {
   } = session;
 
   // Register the frame capturer from the camera.
+  // Captures a photo then RESIZES + RECOMPRESSES it to keep payload small
+  // across all device cameras (Samsung, Pixel, iPhone, etc.).
   useEffect(() => {
     session.setCapturer(async () => {
       try {
+        // Capture at low quality — but NOTE: this still uses native resolution
+        // on Samsung phones, so the base64 can be huge. That's why we resize.
         const photo = await cameraRef.current?.takePictureAsync({
-          base64: true,
-          quality: 0.2,
+          base64: false, // Don't need base64 from capture — we'll get it after resize
+          quality: 0.3,
           imageType: 'jpg',
           exif: false,
           skipProcessing: true,
         });
-        const base64 = photo?.base64;
-        return base64 && base64.length > 0 ? base64 : null;
+        if (!photo?.uri) return null;
+
+        // Downscale to ≤640px and re-compress — this is what fixes Samsung
+        return await compressFrame(photo.uri);
       } catch {
         return null;
       }

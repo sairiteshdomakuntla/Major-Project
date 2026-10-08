@@ -64,6 +64,12 @@ const WS_PING_INTERVAL_MS = 25_000;
 const MAX_RECONNECT_ATTEMPTS = 8;
 /** Initial backoff for reconnects (ms). */
 const INITIAL_BACKOFF_MS = 500;
+/**
+ * Max base64 frame size to send (chars). Frames larger than this are silently
+ * dropped client-side to prevent WebSocket "Max payload size exceeded" errors.
+ * This must be less than the backend's maxPayload (5 MB) minus JSON overhead.
+ */
+const MAX_WS_FRAME_SIZE = 4 * 1024 * 1024; // 4 MB
 
 // Fallback REST polling constants
 const FALLBACK_FAST_INTERVAL_MS = 2000;
@@ -364,6 +370,13 @@ export function useLiveSession() {
       try {
         const base64 = await capturerRef.current();
         if (!base64 || !mountedRef.current || !runningRef.current) return;
+
+        // Guard: drop frames that would exceed the backend's WebSocket maxPayload.
+        // This prevents the "Max payload size exceeded" error on Samsung / high-res phones.
+        if (base64.length > MAX_WS_FRAME_SIZE) {
+          console.warn(`[live] Dropping oversized frame: ${(base64.length / 1024).toFixed(0)} KB`);
+          return;
+        }
 
         frameIndexRef.current++;
         setFrameCount(frameIndexRef.current);

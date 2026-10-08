@@ -66,8 +66,8 @@ interface ClientState {
 const IDLE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 /** Heartbeat ping interval (ms). */
 const HEARTBEAT_INTERVAL_MS = 30_000;
-/** Max payload size for a single frame message. */
-const MAX_FRAME_SIZE = 512 * 1024; // 512 KB
+/** Max payload size for a single frame message (base64 string length). */
+const MAX_FRAME_SIZE = 4 * 1024 * 1024; // 4 MB — Samsung high-res cameras can produce large frames
 
 // ---------------------------------------------------------------------------
 // Setup
@@ -77,7 +77,11 @@ export function attachLiveWebSocket(server: Server): WebSocketServer {
   const wss = new WebSocketServer({
     server,
     path: '/api/v1/live',
-    maxPayload: 1024 * 1024, // 1 MB max total message
+    maxPayload: 5 * 1024 * 1024, // 5 MB — Samsung/high-res phones need headroom
+    perMessageDeflate: {
+      zlibDeflateOptions: { level: 1 }, // fast compression
+      threshold: 1024, // only compress messages > 1 KB
+    },
   });
 
   // Heartbeat: detect dead connections
@@ -247,7 +251,8 @@ function handleFrame(ws: WebSocket, state: ClientState, msg: FrameMessage): void
 
   // Reject oversized frames
   if (msg.data.length > MAX_FRAME_SIZE) {
-    return; // Drop silently — don't spam the client with errors
+    console.warn(`[live-ws] Dropping oversized frame: ${(msg.data.length / 1024).toFixed(0)} KB`);
+    return;
   }
 
   state.manager.sendFrame(msg.data);
