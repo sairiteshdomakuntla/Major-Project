@@ -47,22 +47,26 @@ Intelligent Multilingual and Multimodal AI Systems for Cross-Disability Assistiv
   \orgname{VNR Vignana Jyothi Institute of Engineering and Technology (VNR VJIET)},
   \orgaddress{\city{Hyderabad}, \state{Telangana}, \country{India}}}
 
-\abstract{Assistive technologies for individuals with sensory and speech impairments remain
-constrained by architectural fragmentation, rigid single-modality interfaces, and linguistic
-exclusion across non-English-speaking populations. Existing commercial systems target isolated
-tasks---optical character recognition (OCR), text-to-speech, or single-turn image captioning---and
-fail to serve users with compound, cross-modal impairments. This review systematically surveys the
-evolution of intelligent assistive technologies across visual assistance, multilingual speech
-interaction, real-time video streaming, and privacy-preserving AI. We examine foundational works
-spanning vision-assistive applications, multimodal large language models (MLLMs), multilingual
-speech recognition for Indic languages, and edge-cloud streaming architectures. Critical research
-gaps are identified: the absence of unified cross-disability platforms, linguistic exclusion of
-Indic language speakers, latency bottlenecks in live scene narration, and insufficient privacy
-design in continuous assistive feeds. Based on these gaps, this work presents a unified assistive
-framework validated through empirical benchmarks: end-to-end live narration latency of 688.3\,ms
-over Wi-Fi, OCR word error rate of 4.2\% on printed signage, and voice command classification
-accuracy exceeding 94\% across English, Hindi, and Telugu. This survey serves as a comprehensive
-reference for researchers advancing inclusive, multimodal AI accessibility systems.}
+\abstract{The use of assistive technologies among people with sensory and
+speech disabilities is hampered by the fragmentation of architecture,
+single-modality interfaces, and linguistic bias in non-English speaking
+populations. The existing commercial assistive systems can only perform
+isolated actions such as optical character recognition (OCR), text-to-speech,
+and single-turn image captioning and cannot accommodate the users with
+compound disabilities. This paper reviews the development of intelligent
+assistive technologies in the domains of visual assistance, multilingual speech
+interaction, live video stream, and privacy-preserving AI. We review the seminal
+papers in the domain of vision assistance, multilingual large language models
+(MLLMs), multilingual speech recognition for Indic languages, and edge-cloud
+video streaming systems. Some critical research gaps are discussed, which include
+the absence of a unified cross-disability system, exclusion of the population of
+Indic language speakers from multilingual models, latency bottleneck in live
+scene narration, and lack of privacy design in the continuous assistive feed.
+Based on the identified gaps, this work introduces a unified assistive system
+validated through experimental benchmarking results: live narration latency of
+688.3 ms over Wi-Fi, OCR word error rate of 4.2\% for printed signages,
+and voice command classification accuracy above 94\% in English, Hindi, and
+Telugu.}
 
 \keywords{Multimodal AI, Cross-Disability Accessibility, Vision-Language Models,
 Multilingual Speech Recognition, Real-Time Scene Narration, Privacy-Preserving AI}
@@ -73,16 +77,15 @@ Multilingual Speech Recognition, Real-Time Scene Narration, Privacy-Preserving A
 %%=============================================================%%
 \section{Introduction}\label{sec:intro}
 
-More than 1.3 billion individuals worldwide---approximately 16\% of the global
-population---live with significant disabilities~\cite{who2023disability}. Among
-these, individuals with sensory and speech impairments represent a particularly
-underserved group whose daily autonomy depends on fast, accurate, and contextually
-aware assistive tools. Visual impairments impede interpretation of signage,
-medication labels, and navigational hazards. Deaf and hard-of-hearing individuals
-require immediate textual or haptic representations of audio events. Individuals
-with vocal or motor impairments are frequently excluded from voice-first digital
-interfaces that lack augmentative and alternative communication (AAC)
-pathways~\cite{bigham2010vizwiz, w3c2023wcag}.
+More than 1.3 billion people around the world—about 16\% of the world’s
+population—are affected by disabilities [1]. Of these people, individuals affected
+by sensory and speech problems constitute a particularly vulnerable group who need
+rapid, precise, and context-sensitive assistive technologies to function indepen
+dently. People suffering from visual impairments face problems in reading sig
+nages, medicine warnings, and navigation hazards. People suffering from deafness or
+hearing loss require instantaneous visual or haptic representations of sound events.
+People with speech or motor impairments are often locked out of voice-based digi
+tal systems that do not have alternative communication methods~\cite{bigham2010vizwiz, w3c2023wcag}.
 
 Contemporary assistive tools suffer from four documented structural
 shortcomings~\cite{morris2020ai}: (i)~\textbf{Modal Fragmentation}---users must
@@ -112,18 +115,16 @@ The objectives of this research work, each mapped to a defining keyword, are:
   with end-to-end latency below 850\,ms through a WebSocket streaming pipeline,
   single-concurrency frame queuing, and multi-model fallback cascade~\cite{fette2011websocket}.
 
-  \item \textbf{[Multimodal Vision Intelligence]} To integrate high-resolution on-demand
-  visual inspection and live streaming narration via multimodal large language models
-  (MLLMs)~\cite{team2023gemini}, providing OCR, object localization, and contextual
-  scene understanding.
+\item \textbf{[Multimodal Vision Intelligence]} To incorporate high-resolution on-demand
+visual inspection and live narration using multimodal large language models
+(MLLMs)~\cite{team2023gemini}, delivering optical character recognition (OCR), object
+localization, and contextual scene understanding.
 
-  \item \textbf{[Privacy-by-Design]} To architect a zero-persistence ephemeral processing
-  pipeline wherein no camera frames, transcripts, or biometric tokens are stored at any
-  tier of the system~\cite{w3c2023wcag}.
+\item \textbf{[Privacy-by-Design]} To design a zero-persistence ephemeral processing
+pipeline in which no camera frames, transcripts, or biometric tokens are persisted at
+any level of the system~\cite{w3c2023wcag}.
 
-  \item \textbf{[Multi-Turn Conversational Grounding]} To enable stateful multi-turn
-  visual dialogue so users may ask follow-up queries about a prior scene without
-  re-capturing frames.
+\item \textbf{[Multi-Turn Conversational Grounding]}To facilitate multi-turn visual dialogue with state information such that the user can pose additional questions on an already-seen image.
 \end{enumerate}
 
 The remainder of this paper is organized as follows. Section~\ref{sec:litsurvey}
@@ -142,25 +143,25 @@ filters to deep convolutional networks and contemporary multimodal transformer
 architectures. Below we survey the four principal research pillars.
 
 \subsection{Vision-Assistive Applications and Scene Understanding}
+The VizWiz platform was first used by Bigham et al.~\cite{bigham2010vizwiz} for
+crowd-sourced visual assistance, allowing blind users to take pictures and receive
+answers almost immediately from sighted volunteers. The study established an important
+fact: pictures taken by blind users show more blur, poorer framing, and less favorable
+illumination than standard benchmark images, and over 30\% of queries could not be
+answered by automated systems because of these characteristics. These findings
+established the need for uncertainty-aware AI models rather than confidence-first
+classifiers.
 
-Bigham et al.~\cite{bigham2010vizwiz} pioneered crowd-sourced visual assistance with
-the VizWiz platform, enabling blind users to photograph objects and receive near-real-time
-answers from sighted volunteers. Their study revealed a critical insight: images submitted
-by blind users suffer significantly higher blur, poor framing, and unfavorable lighting
-than standard benchmark images, with over 30\% of queries categorized as unanswerable by
-automated systems. This finding established the need for uncertainty-aware AI models rather
-than confidence-first classifiers.
+Microsoft's Seeing AI~\cite{microsoftSeeingAI} improved the modularity of the CNN
+architecture by providing separate sub-modes (short text, barcode, scene, face) on iOS.
+However, each mode is an individual inference pipeline that lacks semantic continuity,
+since the system cannot answer questions about an object detected in the previous frame.
 
-Microsoft's Seeing AI~\cite{microsoftSeeingAI} extended the modular CNN paradigm by
-offering discrete sub-modes (short text, barcode, scene, face) on iOS. However, each mode
-operates as an isolated inference pipeline without semantic continuity; the system cannot
-answer a follow-up query about an object identified in the previous frame.
-
-Google Lookout~\cite{lookout2020} introduced on-device continuous object and text detection
-via TensorFlow Lite, achieving snapshot latencies of 0.8--1.5\,s. Envision
-AI~\cite{envision2022} extended wearable visual recognition to smart glasses with snapshot
-latencies of 2--4\,s, but multi-turn dialogue and Indic language support remained absent in
-both systems.
+Google Lookout~\cite{lookout2020} provided on-device continuous object and text detection
+via TensorFlow Lite, with snapshot latencies of 0.8--1.5\,s. Envision
+AI~\cite{envision2022} expanded wearable visual recognition to smart glasses with snapshot
+latencies of 2--4\,s; however, multi-turn dialogue and Indic language support are missing
+in both systems.
 
 Guo et al.~\cite{guo2019visual} conducted a systematic benchmark of assistive mobile vision
 systems, finding that real-world error rates were 2--4$\times$ higher than controlled
@@ -171,7 +172,6 @@ achieve real-time object detection at over 100 frames per second on edge devices
 neither architecture supports rich, contextual natural language scene description.
 
 \subsection{Multimodal Large Language Models}
-
 Vaswani et al.~\cite{vaswani2017attention} introduced the Transformer architecture, which
 became the backbone for all modern multimodal models. Brown et al.~\cite{brown2020gpt3}
 demonstrated with GPT-3 that language models at scale exhibit powerful few-shot learning
@@ -209,10 +209,10 @@ on English data suffer 30--60\% degradation in token-level accuracy when applied
 Hindi, Telugu, Tamil, and Bengali. Their analysis attributed this to morphological
 complexity, script diversity, and insufficient pre-training corpora.
 
-Kumar et al.~\cite{kumar2022indic} benchmarked speech recognition for low-resource Indian
-languages, reporting WER values 2--5$\times$ higher than English baselines even for
-high-resource languages such as Hindi. They highlighted that code-mixed speech (e.g.,
-Hinglish, Tenglish) poses especially severe challenges due to within-utterance
+Kumar et al.~\cite{kumar2022indic} evaluated speech recognition for low-resource Indian
+languages, finding that WER scores were 2--5$\times$ higher than English baselines, even
+for high-resource languages such as Hindi. They noted that code-mixed speech such as
+Hinglish and Tenglish poses particularly severe challenges due to within-utterance
 script switching.
 
 Ramesh et al.~\cite{indic2023ai4bharat} released the Sangraha dataset and trained
@@ -222,23 +222,22 @@ multilingual pre-training with extensible vocabulary expansion enables zero-shot
 cross-lingual transfer, which is directly applicable to low-resource Indic command parsing.
 
 \subsection{Real-Time Streaming and Edge-Cloud Architectures}
+Fette and Melnikov~\cite{fette2011websocket} established the WebSocket protocol (RFC 6455),
+setting the groundwork for persistent full-duplex browser-server communication. Their
+protocol analysis found that WebSockets reduce per-message overhead from 871 bytes (HTTP
+polling) to 2 bytes (WebSocket frame header), allowing high-frequency frame transmission
+with low bandwidth cost.
 
-Fette and Melnikov~\cite{fette2011websocket} formalized the WebSocket protocol (RFC 6455),
-establishing the basis for persistent full-duplex browser-server communication. Their
-protocol analysis showed that WebSockets reduce per-message overhead from 871 bytes (HTTP
-polling) to 2 bytes (WebSocket frame header), enabling high-frequency frame transmission
-with minimal bandwidth penalty.
+Morris~\cite{morris2020ai} offered an extensive overview of AI accessibility opportunities
+and challenges, stating that latency, cost, and model hallucination are the three main
+limitations preventing practical deployment. He also highlighted the danger of MLLMs
+producing confident but incorrect spatial descriptions---a critical safety issue for blind
+navigation users.
 
-Morris~\cite{morris2020ai} provided a comprehensive review of AI opportunities and
-challenges in accessibility, arguing that latency, cost, and model hallucination are the
-three principal barriers to practical deployment. He specifically flagged the risk of
-MLLMs producing confident but incorrect spatial descriptions---a safety-critical hazard
-for blind navigation users.
-
-The W3C~\cite{w3c2023wcag} published WCAG 2.2, encoding 87 success criteria for
-accessible web content. Crucially, WCAG 2.2 addresses UI-level accessibility (screen
-reader compatibility, color contrast, keyboard navigation) but provides no specification
-for AI-generated content quality, ephemeral data handling, or streaming inference
+The W3C~\cite{w3c2023wcag} introduced WCAG 2.2, containing 87 accessibility success
+criteria for web content. Crucially, WCAG 2.2 addresses UI-level accessibility (e.g.,
+screen reader support, color contrast, and keyboard navigation) but offers no guidance
+on AI-generated content quality, ephemeral data handling, or streaming inference
 architectures---a normative gap this research directly addresses.
 
 %%=============================================================%%
@@ -251,27 +250,28 @@ unresolved gaps that collectively motivate this research work:
 
 \begin{enumerate}
 
-\item \textbf{No unified cross-disability platform exists.} All reviewed commercial
-products---Seeing AI~\cite{microsoftSeeingAI}, Lookout~\cite{lookout2020}, Envision
-AI~\cite{envision2022}, Be My Eyes~\cite{bemyeyes2021}---exclusively target visual
-impairments. Users with compound impairments (e.g., simultaneous vision and speech
-deficits) have no integrated solution. No academic prototype reviewed combines visual,
-auditory, vocal, and cognitive assistance within a single coherent system.
+\item \textbf{No unified cross-disability platform exists.} None of the reviewed
+commercial products---Seeing AI~\cite{microsoftSeeingAI}, Lookout~\cite{lookout2020},
+Envision AI~\cite{envision2022}, Be My Eyes~\cite{bemyeyes2021}---goes beyond
+visual impairments. Users with multiple disabilities (e.g., simultaneous vision and
+speech deficits) have no single solution that handles them. No academic prototype
+reviewed integrates visual, auditory, vocal, and cognitive assistance within a single
+coherent system.
 
 \item \textbf{Indic languages are absent from all major assistive AI products.}
-Despite 500\,M+ Hindi and 80\,M+ Telugu speakers, no assistive platform provides
-on-device phonetic command parsing in native Indic scripts or Romanized transliteration.
-As documented by Kumar et al.~\cite{kumar2022indic} and Jawahar et
+Although there are 500\,M+ Hindi and 80\,M+ Telugu speakers, no assistive platform
+offers on-device phonetic command parsing in native Indic scripts or Romanized
+transliteration. As noted by Kumar et al.~\cite{kumar2022indic} and Jawahar et
 al.~\cite{jawahar2021indicnlp}, off-the-shelf ASR exhibits 2--5$\times$ higher WER
-on Indian language speech, making cloud-only ASR solutions unreliable for safety-critical
-voice commands.
+on Indian language speech, so purely cloud-based ASR is unreliable for
+safety-critical voice commands.
 
 \item \textbf{No system achieves validated sub-second live narration latency.}
-Existing solutions achieve 1.8--6.0\,s per snapshot via REST calls---far beyond the
-practical threshold for pedestrian navigation. No published work demonstrates an
-empirically validated end-to-end narration pipeline with freshest-frame queueing,
-single-concurrency enforcement, and multi-model cascade achieving below 1\,s across
-real mobile network conditions.
+Current solutions have latencies of 1.8--6.0\,s per frame using REST calls, far above
+the practical threshold for pedestrian navigation. To the best of our knowledge, no
+published work provides an empirically validated end-to-end narration pipeline
+with freshest-frame queueing, single-concurrency enforcement, and a multi-model cascade
+achieving below 1\,s across real mobile network conditions.
 
 \item \textbf{Privacy architecture is absent in assistive streaming feeds.}
 Cloud-based assistive platforms archive continuous camera feeds and transcripts.
@@ -311,17 +311,17 @@ Voice Assistants                      & $\times$ & $\sim$   & $\sim$   & $\times
 %%=============================================================%%
 \section{Proposed Methodology}\label{sec:proposed}
 
-This research work proposes a three-tier client-edge-cloud assistive framework organized
-into a \textbf{Client Tier} (React Native mobile application), an \textbf{Orchestration
+The proposed three-tier client-edge-cloud assistive framework consists of a
+\textbf{Client Tier} (React Native mobile application), an \textbf{Orchestration
 Gateway} (Node.js Master Agent), and a \textbf{Multimodal AI Cloud} (MLLM inference
-backends). Each architectural component is designed to directly resolve one or more
+backends). Each architectural tier is designed to directly resolve one or more
 research gaps identified in Section~\ref{sec:gap}.
 
 \subsection{Cross-Disability Adaptive Profiling}
 
-During onboarding, the user selects a need vector
+Onboarding involves the selection of a need vector
 $N \in \{\text{visual},\,\text{hearing},\,\text{speech},\,\text{general}\}$.
-This profile is stored locally and forwarded with every inference request. The
+This profile is saved locally and sent with each inference request. The
 Orchestration Gateway dynamically compiles the AI system prompt via:
 \begin{equation}
   \mathcal{S}(L,\,N) \;=\;
@@ -383,10 +383,10 @@ The total end-to-end latency budget is:
 
 \subsection{Multilingual Phonetic Command Engine}
 
-Voice commands are classified on-device via a normalised phonetic pattern matcher.
-Input transcripts undergo Unicode NFC normalisation and punctuation stripping
-(including Devanagari \textit{danda} `|`), then matched against a multi-script
-token tree. The command classification function is:
+Voice commands are categorized using an on-device normalized phonetic pattern matcher.
+Input transcripts are normalized to Unicode NFC format and stripped of punctuation
+(including the Devanagari \textit{danda} `|`), and then matched against a multi-script
+token tree. The command categorization function is:
 \begin{equation}
   \mathcal{C}(u) \;=\;
   \arg\max_{a\,\in\,\mathcal{A}}\;
@@ -428,25 +428,24 @@ dispatch; inactive capabilities return graceful degradation messages.
 
 \subsection{Privacy-Preserving Ephemeral Processing}
 
-Camera frames are encoded to in-memory base64 buffers on-device, transmitted over
-TLS-encrypted WebSocket channels, processed exclusively in volatile server RAM, and
-flagged for garbage collection immediately post-inference. Formally, for any frame
-$F_t$:
+Frame data is encoded into in-memory base64 buffers on-device, transferred via
+TLS-encrypted WebSockets, processed only in volatile server-side RAM, and marked for
+garbage collection immediately after inference. Formally, for any frame $F_t$:
 \begin{equation}
   \forall t:\;\Pr\bigl[\textsc{Persist}(F_t)\bigr] = 0
 \end{equation}
-No image buffers, transcripts, or biometric tokens are written to persistent storage
-at any system tier, satisfying a stronger guarantee than WCAG 2.2's data minimisation
-recommendations~\cite{w3c2023wcag}.
+Image buffers, transcripts, and biometric tokens are never persisted to any storage
+at any system tier, achieving a stronger guarantee than the data minimisation
+guidelines of WCAG 2.2~\cite{w3c2023wcag}.
 
 %%=============================================================%%
 %% SECTION 5: EXPERIMENTAL RESULTS & COMPARATIVE ANALYSIS
 %%=============================================================%%
 \section{Experimental Results and Comparative Analysis}\label{sec:experiments}
 
-This section presents empirical evaluation of the proposed system across four
-dimensions: end-to-end latency, OCR fidelity, multilingual command accuracy, and
-live translation. Results are compared against prior systems where data are available.
+This chapter will include empirical analysis of the system in four different dimensions:
+end-to-end latency, OCR accuracy, multilingual command accuracy, and live translation.
+Comparison of results with previous systems will be provided where available.
 
 \subsection{Experimental Setup}
 
@@ -559,23 +558,22 @@ Command Class & English & Hindi (Dev/Translit) & Telugu (Native/Translit) & Macr
 \end{tabular}
 \end{table}
 
-Critically, the safety-critical \texttt{stop} command achieves $\geq$98\% accuracy
-across all three languages, ensuring reliable speech interruption for users who need
-immediate audio silencing. This on-device engine introduces zero network latency
+Most importantly, the safety-critical \texttt{stop} command achieves $>$98\% accuracy
+irrespective of the language used. This on-device engine provides zero network latency
 for command classification---a direct advantage over any cloud-ASR pipeline.
-No prior assistive system reports Indic language command accuracy; hence no direct
-comparison is possible, which itself underscores Gap~2 identified in
+No prior assistive system reports accuracy for Indic language commands; thus, no
+direct comparison is possible, which itself underscores Gap~2 identified in
 Section~\ref{sec:gap}.
 
 \subsection{Live Navigation and Translation (Objectives 2 and 3 Realised)}
 
-This research work realises two implemented objectives relevant to the survey:
+This research work accomplishes two objectives relevant to the survey:
 
 \textbf{Live Scene Navigation (Objective~3):} The system continuously narrates
-the user's environment via the WebSocket pipeline, providing directional cues
+the user's environment through the WebSocket pipeline, offering navigational cues
 (``A staircase begins two steps ahead on your left'',
-``Glass door directly in front, handle on the right'') derived from the MLLM's
-spatial reasoning. In field trials across an office building, the system correctly
+``Glass door ahead, handle on the right'') based on the spatial reasoning performed
+by the MLLM. In tests conducted in an office building, the system correctly
 identified 91\% of static obstacles and 78\% of dynamic obstacles (moving persons,
 swinging doors) within the 850\,ms budget.
 
@@ -604,19 +602,19 @@ This research work presents a directly responsive framework that addresses each
 identified gap with empirically validated solutions. The freshest-frame WebSocket
 pipeline with single-concurrency enforcement and multi-model cascade achieves
 end-to-end live narration latencies of 688.3\,ms (Wi-Fi) and 832.3\,ms (4G LTE),
-representing a $2.6\times$ improvement over the best prior MLLM-based deployment.
-On-device OCR achieves 4.2\% WER on printed signage and 11.4\% under low-light
+a $2.6\times$ improvement over the best prior MLLM-based deployment.
+On-device OCR achieves a 4.2\% WER on printed signage and 11.4\% under low-light
 conditions. The multilingual phonetic command engine achieves 98.2\% (English),
 95.8\% (Hindi), and 94.2\% (Telugu) command accuracy---the first reported Indic
 language command accuracy results in the assistive AI literature. The zero-persistence
-ephemeral architecture ensures $\Pr[\textsc{Persist}(F_t)] = 0$ for all camera
-frames, providing a stronger privacy guarantee than any reviewed system.
+ephemeral architecture guarantees $\Pr[\textsc{Persist}(F_t)] = 0$ for all captured
+camera frames, offering a stronger privacy guarantee than any reviewed architecture.
 
-Collectively, these results demonstrate that advanced multimodal AI can be architected
-to serve genuinely diverse, multilingual, and cross-disabled populations when
-inclusivity is treated as a primary architectural constraint rather than a post-hoc
-feature. The empirical evidence presented establishes a reproducible baseline for
-future research in inclusive, real-time assistive AI.
+Collectively, these results show that advanced multimodal AI can be architected
+to serve multilingual and cross-disability populations when inclusivity is treated
+as a primary architectural constraint rather than an afterthought. The empirical
+evidence presented establishes a reproducible baseline for future research in
+inclusive, real-time assistive AI.
 
 %%=============================================================%%
 %% SECTION 7: FUTURE SCOPE
@@ -646,15 +644,15 @@ coverage to over 95\% of India's linguistically diverse population. Each languag
 requires dedicated multi-script token trees for native script, Romanized
 transliteration, and code-mixed colloquial speech.
 
-\item \textbf{AI-Driven AAC Symbol Boards.} Integrating predictive AAC symbol board
-interfaces within the mobile application will serve non-speaking users who rely on
-symbol selection rather than voice commands. Conversational context prediction can
-reduce the cognitive cost of symbol board navigation substantially.
+\item \textbf{AI-Powered AAC Symbol Boards.} Integrating predictive AAC symbol boards
+into the mobile application will benefit non-verbal users who rely on symbol selection
+rather than voice for communication. Predicting the conversational context can
+significantly lower the cognitive cost of navigating symbol boards.
 
-\item \textbf{Differential Visual Privacy.} Implementing on-device face blurring and
-license plate anonymization prior to cloud transmission will provide formal
-differential privacy guarantees for bystanders captured incidentally during
-assistive navigation sessions.
+\item \textbf{Differential Privacy through Visual Anonymization.} Blurring faces and
+anonymizing license plates on-device prior to cloud transmission will offer formal
+differential privacy assurances for bystanders who appear incidentally in the video
+stream during assistive navigation sessions.
 
 \item \textbf{Longitudinal Field Studies.} Controlled laboratory evaluations must be
 supplemented by longitudinal deployment studies with genuine disability communities
