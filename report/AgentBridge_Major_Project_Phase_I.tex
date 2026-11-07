@@ -1,0 +1,585 @@
+\documentclass[12pt,a4paper,oneside]{report}
+\usepackage[left=1.25in,right=1.25in,top=1in,bottom=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{mathptmx}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{pdfpages}
+\usepackage{xcolor}
+\usepackage{array,tabularx,longtable,booktabs}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{setspace}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{url}
+\usepackage{fancyhdr}
+\setstretch{1.10}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\setlength{\emergencystretch}{2em}
+\setcounter{tocdepth}{2}
+\setcounter{secnumdepth}{2}
+\captionsetup{font=small,labelfont=bf}
+\definecolor{frontnavy}{HTML}{002060}
+\definecolor{coverred}{HTML}{C00000}
+\definecolor{degreered}{HTML}{A20000}
+\definecolor{deptgreen}{HTML}{00B050}
+\titleformat{\chapter}[display]{\centering\bfseries\large}{CHAPTER \thechapter}{8pt}{\large\MakeUppercase}
+\titlespacing*{\chapter}{0pt}{0pt}{22pt}
+\titleformat{\section}{\bfseries\normalsize}{\thesection}{0.7em}{}
+\titleformat{\subsection}{\bfseries\normalsize}{\thesubsection}{0.7em}{}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\thepage}\renewcommand{\headrulewidth}{0pt}}
+\newcommand{\projecttitle}{AN AGENTIC AI FRAMEWORK FOR CONTEXT-AWARE MULTILINGUAL ASSISTANCE FOR DIFFERENTLY-ABLED INDIVIDUALS}
+\newcommand{\department}{COMPUTER SCIENCE AND ENGINEERING}
+\newcommand{\studentlist}{%
+\begin{tabular}{@{}p{3.4in}l@{}}
+DOMAKUNTLA SAI RITESH & 23071A0577\\
+MOHAMMAD ARBAZ AHMED & 23071A05A0\\
+PAPINI ABHINAV & 23071A05B2\\
+PENDELA MANIKANTA & 23071A05B5
+\end{tabular}}
+\newcommand{\frontheading}[1]{\begin{center}\color{frontnavy}\bfseries\large #1\end{center}\vspace{0.5cm}}
+\newcommand{\frontpage}[2]{\clearpage\phantomsection\addcontentsline{toc}{chapter}{#1}\frontheading{#1}#2}
+\newcommand{\logofrontpage}[2]{\clearpage\phantomsection\addcontentsline{toc}{chapter}{#1}#2}
+\makeatletter
+\newtoks\indexrows
+\newcommand{\tabulatedindex}[3]{%
+\frontpage{#1}{%
+\begingroup\small\setlength{\tabcolsep}{6pt}\renewcommand{\arraystretch}{1.0}%
+\global\indexrows={}%
+\renewcommand{\contentsline}[4]{\global\indexrows=\expandafter{\the\indexrows ##2 & ##3\\\hline}}%
+\renewcommand{\numberline}[1]{##1\hspace{0.5em}}%
+\renewcommand{\addvspace}[1]{}%
+\@starttoc{#2}%
+\begin{longtable}{|>{\raggedright\arraybackslash}p{0.78\textwidth}|>{\centering\arraybackslash}p{0.10\textwidth}|}\hline
+\textbf{#3} & \textbf{Page No.}\\\hline
+\endfirsthead
+\hline\textbf{#3} & \textbf{Page No.}\\\hline
+\endhead
+\the\indexrows
+\end{longtable}\endgroup}}
+\makeatother
+\begin{document}
+\hypersetup{pageanchor=false}
+\begin{titlepage}
+\thispagestyle{empty}
+\begin{center}
+\setlength{\parskip}{0pt}
+\fontsize{14}{18}\selectfont
+{\bfseries\large AN AGENTIC AI FRAMEWORK FOR CONTEXT-AWARE\\MULTILINGUAL ASSISTANCE FOR\\DIFFERENTLY-ABLED INDIVIDUALS\par}
+\vspace{0.8cm}
+{\bfseries A PROJECT REPORT SUBMITTED IN PARTIAL\\FULFILLMENT OF THE REQUIREMENTS FOR THE AWARD\\OF THE DEGREE OF\par}
+\vspace{0.35cm}
+{\color{degreered}\bfseries\large BACHELOR OF TECHNOLOGY\par}
+{\bfseries IN\par}
+{\bfseries \department\par}
+\vspace{0.5cm}
+{\bfseries BY\par}
+\vspace{0.70cm}
+{\bfseries\studentlist}
+\vspace{1.80cm}
+\par{\bfseries UNDER THE GUIDANCE OF}\par
+{\bfseries Dr. Anjusha P.}\par
+Senior Assistant Professor\par
+\vspace{0.30cm}
+\includegraphics[width=1.445in,height=1.60in]{vnr-emblem.png}\par
+\vspace{-0.60cm}
+{\bfseries DEPARTMENT OF COMPUTER SCIENCE AND\\ENGINEERING\par}
+\vspace{0.58cm}
+{\fontsize{12}{15}\selectfont\color{coverred}\bfseries VALLURUPALLI NAGESWARA RAO\par}
+{\fontsize{12}{15}\selectfont\color{coverred}\bfseries VIGNANA JYOTHI INSTITUTE OF ENGINEERING \& TECHNOLOGY\par}
+{\fontsize{12}{15}\selectfont\color{frontnavy}Vignana Jyothi Nagar, Bachupally, Hyderabad 500118, Telangana, India\par}
+\vspace{0.55cm}
+{\color{frontnavy}\bfseries NOVEMBER 2026\par}
+\end{center}
+\end{titlepage}
+\hypersetup{pageanchor=true}
+\pagenumbering{roman}
+\setcounter{page}{1}
+
+\logofrontpage{CERTIFICATE}{
+\vspace*{0.25cm}
+\begin{center}\includegraphics[width=3.2in]{vnr-logo.png}\par\vspace{0.40cm}
+{\color{deptgreen}\bfseries\large DEPARTMENT OF COMPUTER SCIENCE AND ENGINEERING}\par
+{\color{frontnavy}\bfseries\large CERTIFICATE}\end{center}
+\vspace{0.25cm}
+{\fontsize{13}{17}\selectfont
+This is to certify that the Major Project Phase-I titled \textbf{``\projecttitle''} is a record of bona fide work submitted by:
+\begin{center}\bfseries\begin{tabular}{@{}ll@{}}
+$\bullet$ DOMAKUNTLA SAI RITESH & 23071A0577\\
+$\bullet$ MOHAMMAD ARBAZ AHMED & 23071A05A0\\
+$\bullet$ PAPINI ABHINAV & 23071A05B2\\
+$\bullet$ PENDELA MANIKANTA & 23071A05B5
+\end{tabular}\end{center}
+in partial fulfillment of the requirements for the award of the degree of \textbf{Bachelor of Technology (B.Tech.)} in \textbf{COMPUTER SCIENCE AND ENGINEERING} of \textbf{Jawaharlal Nehru Technological University Hyderabad (JNTUH)}, under \textbf{VNRVJIET B.Tech. R22 Academic Regulations}. The work has been carried out under our guidance and supervision at \textbf{Vallurupalli Nageswara Rao Vignana Jyothi Institute of Engineering \& Technology, Hyderabad}.
+
+}
+\vfill
+\noindent\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+\textbf{Signature of Supervisor} & \textbf{Signature of HOD}\\[0.25cm]
+\textbf{Dr. Anjusha P.} & \textbf{Dr. Vadlana Baby}\\
+Senior Assistant Professor, CSE & Professor \& HOD, CSE\\
+VNRVJIET, Hyderabad & VNRVJIET, Hyderabad
+\end{tabularx}
+}
+
+\logofrontpage{PLAGIARISM CERTIFICATE}{
+\vspace*{0.25cm}
+\begin{center}\includegraphics[width=3.2in]{vnr-logo.png}\par\vspace{0.35cm}
+{\color{deptgreen}\bfseries\large DEPARTMENT OF COMPUTER SCIENCE AND ENGINEERING}\par
+\vspace{0.25cm}{\color{frontnavy}\bfseries\large PLAGIARISM CERTIFICATE}\end{center}
+\vspace{0.45cm}
+{\fontsize{13}{19}\selectfont
+This is to record that the Major Project Phase-I report titled
+{\color{coverred}\bfseries ``\projecttitle''} was submitted by
+{\color{coverred}\bfseries Domakuntla Sai Ritesh (23071A0577), Mohammad Arbaz Ahmed (23071A05A0), Papini Abhinav (23071A05B2), and Pendela Manikanta (23071A05B5)}.
+
+\vspace{0.35cm}
+\noindent Similarity plagiarism: \rule{0.9in}{0.4pt}\par
+\noindent AI writing assessment: \rule{0.9in}{0.4pt}\par
+}
+\vfill
+\begin{flushright}
+\textbf{Signature of Supervisor}\par\vspace{0.5cm}
+\textbf{Dr. Anjusha P.}\par
+Senior Assistant Professor, Department of CSE\par
+VNRVJIET, Hyderabad
+\end{flushright}
+\vspace{0.5cm}
+}
+
+\frontpage{APPROVAL CERTIFICATE}{
+\vspace{0.35cm}
+{\fontsize{13}{18}\selectfont
+The Major Project Phase-I evaluation for the project titled \textbf{``\projecttitle,''} being submitted by
+
+\textbf{Domakuntla Sai Ritesh}, Regd. No. \textbf{23071A0577}, \textbf{Mohammad Arbaz Ahmed}, Regd. No. \textbf{23071A05A0}, \textbf{Papini Abhinav}, Regd. No. \textbf{23071A05B2}, and \textbf{Pendela Manikanta}, Regd. No. \textbf{23071A05B5},
+
+was conducted on \rule{0.27\textwidth}{0.4pt}. The project has been evaluated in accordance with the applicable requirements of the VNRVJIET B.Tech. R22 Academic Regulations for the \textbf{BACHELOR OF TECHNOLOGY (B.Tech.)} programme in \textbf{COMPUTER SCIENCE AND ENGINEERING}.
+}
+\vfill
+\noindent\begin{tabularx}{\textwidth}{@{}X X@{}}
+{\color{frontnavy}\bfseries INTERNAL EXAMINER} & {\color{frontnavy}\bfseries EXTERNAL EXAMINER}
+\end{tabularx}
+\vspace{1.7cm}
+}
+
+\logofrontpage{DECLARATION}{
+\vspace*{0.25cm}
+\begin{center}\includegraphics[width=3.2in]{vnr-logo.png}\par\vspace{0.4cm}
+{\bfseries\large DEPARTMENT OF COMPUTER SCIENCE AND ENGINEERING}\par
+{\color{frontnavy}\bfseries\large DECLARATION}\end{center}
+\vspace{0.20cm}
+{\fontsize{13}{18}\selectfont
+We, the undersigned, declare that the Major Project Phase-I titled \textbf{``\projecttitle''} has been carried out by us in partial fulfillment of the requirements for the award of the degree of \textbf{Bachelor of Technology (B.Tech.)} in \textbf{COMPUTER SCIENCE AND ENGINEERING} of \textbf{Jawaharlal Nehru Technological University Hyderabad (JNTUH)}, under \textbf{VNRVJIET B.Tech. R22 Academic Regulations}, at \textbf{Vallurupalli Nageswara Rao Vignana Jyothi Institute of Engineering \& Technology, Hyderabad}.
+
+We further declare that this work is original and has not been submitted previously for a degree or similar title. We take responsibility for its citations, originality and compliance with the Institute's academic-ethics requirements. The contribution record of all team members appears in Appendix A.
+}
+\vfill
+\noindent\textbf{PLACE: HYDERABAD}\\
+\textbf{DATE:} \rule{0.23\textwidth}{0.4pt}
+\vspace{0.2cm}
+\begin{flushright}\textbf{Signature of the Student(s)}\end{flushright}
+\noindent\studentlist
+}
+
+\frontpage{ABSTRACT}{
+Differently-abled individuals may need separate applications to read signs, understand scenes, communicate across languages and ask everyday questions. This Phase-I project develops AgentBridge, a mobile and backend prototype for bringing these interactions into one assistive workflow. Its Expo application records a user's accessibility needs, language and preferred input and output modes. An Express backend uses a Master Agent to label requests and route text and image questions to a Gemini provider; dedicated translation routes support typed and camera-captured text. The mobile prototype also provides speech output, voice commands in a development build, and live camera narration through a WebSocket connection with a REST fallback. The literature review finds promising multimodal and agent-based methods, but also shows that image descriptions can be inaccurate, interfaces can exclude neurodivergent users, and low-cost deployment and user-centred evaluation remain open challenges. Phase I has produced the application structure and working feature paths, not a clinical or field validation of accessibility. The report distinguishes implemented functions from the proposed wearable device, broader language and disability support, and future evaluation with intended users. Phase II will measure task accuracy, response time, language quality and usability, then address privacy, cost and reliability before any deployment claim.
+
+\noindent\textbf{Keywords:} Agentic AI, accessibility, multimodal assistance, multilingual interaction, computer vision, speech processing.
+}
+
+\tabulatedindex{TABLE OF CONTENTS}{toc}{Contents}
+\tabulatedindex{LIST OF FIGURES}{lof}{Figure}
+\tabulatedindex{LIST OF TABLES}{lot}{Table}
+
+\frontpage{NOMENCLATURE}{
+\begin{longtable}{|p{0.25\textwidth}|p{0.62\textwidth}|}\hline
+\textbf{Symbol or term} & \textbf{Meaning}\\\hline
+AgentBridge & The proposed multilingual, multimodal assistive application\\\hline
+AI & Artificial Intelligence\\\hline
+LLM & Large Language Model\\\hline
+MLLM & Multimodal Large Language Model\\\hline
+CV & Computer Vision\\\hline
+OCR & Optical Character Recognition\\\hline
+STT & Speech-to-Text\\\hline
+TTS & Text-to-Speech\\\hline
+API & Application Programming Interface\\\hline
+REST & Representational State Transfer\\\hline
+WebSocket & Persistent two-way connection used for live camera narration\\\hline
+WCAG & Web Content Accessibility Guidelines\\\hline
+\end{longtable}
+}
+
+\frontpage{ACKNOWLEDGEMENT}{
+We express our sincere gratitude to Dr. B. Chennakesava Rao, Principal of Vallurupalli Nageswara Rao Vignana Jyothi Institute of Engineering and Technology, for providing an encouraging academic environment and the facilities needed to undertake this project.
+
+We thank Dr. Vadlana Baby, Professor and Head of the Department of Computer Science and Engineering, for her support and encouragement throughout the project work. We are grateful to the department for giving us the opportunity to present our progress and receive useful suggestions during the reviews.
+
+We are especially thankful to our guide, Dr. Anjusha P., Senior Assistant Professor in the Department of Computer Science and Engineering. Her guidance, patience and constructive feedback helped us plan our work, resolve difficulties and improve the report. We appreciate the time she spent discussing our progress and encouraging us to examine our results carefully.
+
+We also thank the project coordinators, faculty members and technical staff of the department for their advice and assistance. Their support helped us use the available resources and complete the Phase-I work.
+
+\vspace{0.9in}
+\begin{center}{\bfseries\studentlist}\end{center}
+}
+
+\clearpage\pagenumbering{arabic}
+\chapter{Introduction}
+\section{Background of the problem}
+Assistive technology helps people access information, communicate and act independently. Yet a person who needs to hear a street sign, translate a medicine label and ask a follow-up question may have to move among unrelated applications. Each application handles one task and loses the context of the preceding interaction. A person with both visual and hearing needs may face still more friction when an application assumes one standard input or output channel. The project literature review identifies this fragmentation across visual, speech and cognitive accessibility studies \cite{rajagopal,aljedaani,jan}.
+
+Mobile phones now combine a camera, microphone, network connection and speech output. Large language models can respond to questions and multimodal models can describe images. These components make an integrated assistant possible, but an accessible system must choose an appropriate mode for each user and communicate uncertainty. A generated scene description can omit a hazard or misread a label. The interface must therefore present an answer as assistance, not as a guarantee of safety.
+
+AgentBridge is the team's proposed framework for coordinated text, speech, vision and translation assistance. The current implementation is a mobile application backed by an Express service. The Master Agent processes text and image requests through an AI provider. Separate translation routes and a live camera-narration path extend the prototype. The proposed low-cost wearable and broad field deployment remain future work.
+
+\section{Need and relevance}
+Accessibility needs vary across users and situations. A blind or low-vision user may need a concise spoken description or a focused reading of text. A deaf or hard-of-hearing user may prefer visible text and status messages. A person who cannot rely on speech input needs typing and touch controls. A user with cognitive or learning differences may benefit from a clear, low-clutter flow. The prototype captures these preferences during onboarding rather than imposing one interaction mode on everyone.
+
+Language also matters. The literature review proposes English, Hindi, Telugu, Tamil, Kannada, Malayalam and Konkani. A system serving rural and underserved communities cannot assume that English-only prompts or responses are usable. AgentBridge therefore exposes these languages in its current profile and translation code, while the quality of model responses and device speech recognition still requires testing for each language and environment.
+
+The work is relevant as an engineering integration study. It asks whether a modular agent architecture can combine common assistive tasks in one interface and preserve enough context to make follow-up requests useful. The literature warns that individual model demonstrations are not equivalent to an accessible service validated with users \cite{xu,aljedaani,baghel}. The project treats real-user evaluation, privacy and response reliability as requirements for Phase II.
+
+\section{Problem statement}
+Differently-abled individuals often rely on separate tools for reading, vision, speech, translation and conversational assistance. Those tools may lack shared context, language choice and interaction modes suited to a person's accessibility needs. The project develops an agent-based application that accepts text, speech and images, coordinates the relevant processing functions and returns understandable responses in a chosen language. The Phase-I report documents the proposed design, the working prototype and the gaps that remain before broad deployment.
+
+\section{Aim and objectives}
+\textbf{Aim.} The aim is to develop and evaluate a context-aware, multilingual assistive framework that unifies several everyday accessibility interactions. The project has four objectives:
+\begin{enumerate}[leftmargin=*]
+\item To provide multimodal assistance for users with visual, hearing and speech-related needs through text, camera, voice and touch interaction.
+\item To support multilingual communication, beginning with the seven languages named in the project literature review, and to measure quality rather than infer it from API availability.
+\item To coordinate a Master Agent with specialized vision, speech and translation capabilities while using user preferences and recent conversation context.
+\item To study a low-cost, portable path suitable for rural and underserved users, subject to usability, reliability, privacy and cost evidence.
+\end{enumerate}
+Table~\ref{tab:progress} records what the present repository establishes against these objectives.
+
+\section{Scope of work}
+Phase I includes a five-step mobile onboarding flow, text chat, still-image analysis, camera text translation, typed translation, speech output and a live camera-narration implementation. The mobile client uses Expo and React Native; the backend uses Express, TypeScript and Gemini through a provider module. The prototype stores profile choices on the device and sends requests to the backend when a model response is needed. It offers touch actions alongside the available voice commands.
+
+The present code does not establish clinical safety, reliable obstacle detection, a completed wearable device or performance across all seven languages. Voice recognition requires a development build and device support. Model responses require a configured networked Gemini service. The application should be evaluated as a research prototype; safety-critical navigation and medical decisions require independent verification.
+
+\section{Engineering, environmental, societal and cost considerations}
+The principal engineering challenge is coordinating several modalities without hiding failures. A camera frame is not a structured request until the system knows whether the user wants a general description, visible text or an object. A typed translation request has a different output contract from a conversation. The architecture separates controllers, agent functions and the AI provider so that each response can be validated and an unavailable capability can be reported clearly.
+
+Streaming images can consume bandwidth and provider resources. The live path keeps only the latest pending frame when inference is busy, and the client can fall back to a slower REST cycle. These choices reduce queue buildup, but the actual latency and data use must be measured on representative devices and networks. Repeated cloud inference also has a financial and energy cost that has not been quantified for a wearable deployment.
+
+Privacy is especially important when a camera captures bystanders, documents or medicines. The still-image API handles images in memory according to the current code, while external model processing remains part of the data flow. The project needs a clear consent, retention and deletion design before field testing. Generated descriptions should expose uncertainty and avoid being framed as a substitute for human judgment.
+
+\section{Organization of the report}
+Chapter 1 introduces the need, problem and objectives. Chapter 2 reviews the supplied literature and draws the design gaps. Chapter 3 explains requirements and the proposed architecture. Chapter 4 reports the Phase-I implementation and current checks. Chapter 5 sets out outcomes and a Phase-II evaluation plan. References and appendices record the source papers, team work and a concise literature map.
+
+\chapter{Literature Review}
+\section{Overview of existing work}
+The supplied literature review covers multimodal agents, inclusive interface design, visual question answering, scene understanding, translation and low-cost deployment. Its studies investigate different users and settings. A learning-disability interface that converts information between modalities does not by itself solve street-level visual assistance; an image-captioning model does not guarantee useful spoken interaction. The works are therefore compared by the user need and the system boundary they address, rather than by a single accuracy figure.
+
+Three themes shape AgentBridge. First, people need flexible input and output modes. Second, an assistant must retain relevant context across tasks without assuming that every generated statement is correct. Third, feasibility depends on low-latency operation, privacy and evaluation with the people intended to use it. Table~\ref{tab:lit} maps representative sources to these themes.
+
+\section{Comparison of methods}
+\subsection{Multimodal and inclusive interaction}
+Rajagopal and colleagues describe a generative multimodal agent that adapts information for people with learning disabilities \cite{rajagopal}. Roomkham and colleagues explore conversational search for people with intellectual disability \cite{roomkham}. Both show the value of adjusting the interaction itself, not only adding a model. Xu and colleagues review adaptive human--AI design for neurodivergent users and emphasize participation and longer-term evaluation \cite{xu}. These sources support AgentBridge's onboarding choices and multiple interaction modes, while also showing that a preference screen alone is not evidence of accessibility.
+
+Pedemonte and colleagues examine generated alternative text for STEM images \cite{pedemonte}. Aljedaani and Mollik's review finds that LLM-supported web accessibility often remains limited to isolated tasks and simple architectures \cite{aljedaani}. AgentBridge uses these findings to justify one workflow for conversation, camera assistance and translation. Its value, however, must be established by actual task completion and user feedback rather than by the number of features exposed.
+
+\subsection{Agent coordination and context}
+Kavitha and colleagues discuss context handling in a general AI assistant \cite{kavitha}. Yang and colleagues' ContextAgent uses open-world sensory information and history to support proactive assistance \cite{yang}. Jan and colleagues and Siddiqui and colleagues propose coordinated agent frameworks for disability and neurodivergence, with an emphasis on daily routines and wellbeing \cite{jan,siddiqui}. These studies suggest that agent coordination can connect specialized services, but they do not validate AgentBridge's particular routing choices or its accessibility outcomes.
+
+The current Master Agent labels intent and calls the text or vision provider. Translation is implemented through dedicated endpoints. Speech recognition and speech synthesis are primarily handled on the mobile device. This is a practical decomposition of the literature's agent idea, though it is not yet a fully autonomous multi-agent planner. Context is limited to the history supplied with a request, and a long-term memory policy is not implemented.
+
+\subsection{Vision, speech and mobility assistance}
+Zatserkovnyi and colleagues study inclusive image captioning \cite{zatserkovnyi}. Kim and colleagues' GuideDog dataset highlights the need for real-world, accessibility-aware visual descriptions and depth reasoning \cite{kim}. Gonz\'alez Pe\~nuela and colleagues focus on the specific visual questions people ask, which argues for concise, task-directed answers \cite{penuela}. Baghel and colleagues examine lightweight vision-language models and evaluation suited to blind and low-vision users \cite{baghel}. These papers inform the prototype's describe, read and follow-up actions, and they caution against claiming safe navigation from general image understanding.
+
+Magay and colleagues investigate a wearable multimodal platform \cite{magay}. Cao and colleagues address real-time accessibility in virtual environments \cite{cao}. Raif and colleagues consider edge and IoT deployment for sensory assistance \cite{raif}. Together, they motivate a portable and responsive design, but each evaluates a different environment. AgentBridge's mobile live-narration path still needs controlled latency, accuracy and battery measurements before a wearable claim is justified.
+
+\subsection{Representative literature comparison}
+Table~\ref{tab:lit} summarizes the work most relevant to the system design. The wider source map appears in Appendix C.
+\begingroup\footnotesize\setstretch{1.0}\setlength{\tabcolsep}{3pt}\renewcommand{\arraystretch}{1.12}
+\begin{longtable}{|>{\raggedright\arraybackslash}p{0.16\textwidth}|>{\raggedright\arraybackslash}p{0.23\textwidth}|>{\raggedright\arraybackslash}p{0.30\textwidth}|>{\raggedright\arraybackslash}p{0.23\textwidth}|}
+\caption{Comparison of literature relevant to AgentBridge}\label{tab:lit}\\\hline
+Work & Method & Contribution and limitation & Relevance to AgentBridge\\\hline\endfirsthead
+\caption[]{Comparison of literature relevant to AgentBridge (continued)}\\\hline
+Work & Method & Contribution and limitation & Relevance to AgentBridge\\\hline\endhead
+Rajagopal et al. (2023) \cite{rajagopal} & Generative multimodal agent & Adapts presentation across modes for learning disability; addresses a narrower group. & Supports flexible modality selection.\\\hline
+Roomkham et al. (2022) \cite{roomkham} & Conversational search & Explores search interaction for intellectual disability; limited task setting. & Supports clear, conversational access to information.\\\hline
+Pedemonte et al. (2025) \cite{pedemonte} & LLM image alt text & Improves access to complex STEM images; focused on web content. & Supports visual content explanation and output review.\\\hline
+Xu et al. (2026) \cite{xu} & Inclusive design review & Finds a need for participatory and long-term evaluation. & Shapes Phase-II usability testing.\\\hline
+Kavitha et al. (2025) \cite{kavitha} & Context-aware assistant & Studies context handling in a general assistant; accessibility is outside its core scope. & Motivates recent conversation context.\\\hline
+Aljedaani and Mollik (2026) \cite{aljedaani} & LLM accessibility review & Finds task-specific, fragmented systems and evaluation gaps. & Motivates a coordinated application.\\\hline
+Jan et al. (2025) \cite{jan} & Collaborative agents & Coordinates wellbeing agents; not a general assistive interface. & Supports bounded agent responsibilities.\\\hline
+Zatserkovnyi et al. (2025) \cite{zatserkovnyi} & Inclusive image captioning & Generates visual descriptions; does not cover other modalities. & Supports image assistance in a broader workflow.\\\hline
+Yang et al. (2025) \cite{yang} & ContextAgent & Uses sensory context and history; privacy and accessibility transfer need study. & Motivates context-aware routing.\\\hline
+Siddiqui et al. (2026) \cite{siddiqui} & ADAPT agent framework & Proposes personalized support, with limited real-user evidence. & Motivates evaluation beyond a prototype.\\\hline
+Kim et al. (2025) \cite{kim} & GuideDog dataset & Provides accessibility-aware visual examples; depth remains difficult. & Informs vision evaluation and safety limits.\\\hline
+Gonz\'alez Pe\~nuela et al. (2025) \cite{penuela} & Question-guided vision & Focuses on information users actually request. & Supports read and follow-up prompts.\\\hline
+Baghel et al. (2025) \cite{baghel} & Lightweight VLM evaluation & Studies device limits and accessible outputs. & Informs cost and model-quality tests.\\\hline
+Magay et al. (2025) \cite{magay} & Wearable multimodal platform & Demonstrates a portable form factor; hardware transfer remains open. & Guides wearable feasibility study.\\\hline
+Raif et al. (2025) \cite{raif} & Edge-IoT sensory assistance & Explores on-device and connected support; conditions differ from this app. & Informs rural network analysis.\\\hline
+\end{longtable}\endgroup
+
+\section{Critical analysis of literature and inferences}
+The studies use different tasks, people, datasets and definitions of success. Image-caption quality, conversational fluency and navigation safety cannot be combined into one score. A model may generate a plausible answer while omitting the exact text or object a user requested. AgentBridge should therefore evaluate each task separately and record failures, uncertainty and user corrections.
+
+The evidence also separates a proposed architecture from a validated service. Several papers describe systems or synthetic evaluations, whereas the design-review literature calls for people with disabilities to participate in testing \cite{xu,jan,siddiqui}. The Phase-I code establishes that components can exchange data; it does not establish that those components meet users' needs in daily environments.
+
+Multilingual support requires more than a language menu. Speech recognition depends on device engines, accent and background noise. Translations can change the meaning of warnings or place names. The seven-language implementation should be evaluated with task-specific examples and native speakers before the project claims equivalent quality across languages.
+
+\section{Research gaps identified}
+The supplied review identifies four gaps relevant to AgentBridge: assistive functions are fragmented; many systems focus on one disability or one task; context and language support are uneven; and evaluation with intended users is limited. The proposed system addresses integration by using a common profile, mobile interface and capability-specific backend routes. Its remaining research question is whether this integration improves real task completion, comprehension and confidence without introducing unacceptable error, latency or privacy cost.
+
+\chapter{Proposed Design}
+\section{Requirements and constraints}
+The functional requirements are text chat, camera-based scene description and text reading, typed and image-based translation, speech input where supported, spoken and visible output, and profile-aware response behavior. A live mode should return short descriptions while the camera is active. The app should present clear state and error messages and give touch alternatives for commands.
+
+Non-functional requirements include accessibility, reliable failure handling, bounded image size, response time, privacy, and portability. A weak network or missing provider key must produce an understandable failure. The backend should validate inputs before calling the model. An answer used for a consequential decision must be treated as uncertain unless separately verified. A future wearable must meet cost, power and connectivity constraints that are not yet specified by a tested hardware design.
+
+\section{Possible approaches considered}
+A collection of independent apps can each optimize one task, but the user must switch contexts and repeat preferences. A single large prompt could handle several tasks in one model call, but it obscures routing, makes outputs hard to validate and couples every feature to one request format. AgentBridge uses a shared interface with specialized routes and a Master Agent for the common text and vision paths. The translation module has a stricter response schema because translated text and extracted text must be shown separately.
+
+For vision, still-photo requests are simpler to validate and cheaper than continuous streaming. Live narration provides more timely information but consumes more data and can queue stale frames. The implemented WebSocket path therefore retains the latest frame during processing and uses a REST fallback when the persistent connection fails. These trade-offs will be measured rather than assumed.
+
+\section{Proposed approach}
+The workflow begins with onboarding. The user selects accessibility needs, a language, and preferred interaction modes; the choices are stored on the device. A request enters through typed text, speech recognition or camera capture. The mobile app sends text or an encoded image to the relevant backend route. The Master Agent labels general intent and calls the model provider for conversation or image understanding. Dedicated translation handlers request typed or camera-text translation. The app displays the result and uses text-to-speech when the profile includes spoken output.
+
+\subsection{User profile and multimodal interface}
+The profile records visual, hearing, speech or general ease-of-use needs. It also records English, Hindi, Telugu, Tamil, Kannada, Malayalam or Konkani and the selected input and output modes. The current store uses Zustand with device persistence through AsyncStorage. This makes onboarding choices available when the app is reopened. It does not imply that every screen has passed a formal screen-reader audit.
+
+\subsection{Agent coordination and service contracts}
+The Master Agent receives a message, recent conversation history, language and optional accessibility needs. It labels broad intents and returns a uniform response containing text, model, language and capability metadata. The vision path passes an image and a task prompt. A translation agent handles explicit language pairs and image text. The speech functionality is largely a mobile capture and playback layer, so the current decomposition is modular but not a general autonomous agent network.
+
+\subsection{Vision, speech and translation}
+The still-image route accepts JPEG, PNG or WebP image data and supports description, reading and follow-up requests. The client can reuse a captured photo for a follow-up. The translation route returns translated text; the image-translation route returns extracted text, translated text, an item summary and detected language when the model supplies it. These outputs should be checked against the original image, particularly for medicine, transport and official notices.
+
+Speech output uses the mobile platform's synthesis capability. Speech recognition uses a native module and therefore needs a development build; the interface retains touch controls. Live narration streams frames through WebSocket and offers REST fallback. Both paths depend on network and model availability, so the application needs visible connection status and error recovery.
+
+\subsection{System architecture}
+Figure~\ref{fig:arch} shows the main data flow. The diagram identifies modules in the current repository rather than claiming that a wearable or long-term memory store is complete.
+\begin{figure}[H]\centering
+\setlength{\fboxsep}{7pt}
+\fbox{\begin{minipage}{0.86\textwidth}\centering
+\textbf{Expo mobile application}\\
+Onboarding and profile $\mid$ Text $\mid$ Camera $\mid$ Speech controls\\[5pt]
+$\Downarrow$ REST requests and WebSocket frames\\[5pt]
+\textbf{Express API and Master Agent}\\
+Input validation $\mid$ Intent labels $\mid$ Capability routing\\[5pt]
+$\Downarrow$\\[5pt]
+\textbf{Gemini provider and dedicated services}\\
+Text and vision $\mid$ Translation $\mid$ Live narration\\[5pt]
+$\Downarrow$ Response text, metadata and errors\\[5pt]
+\textbf{Mobile presentation}\\
+Visible answer $\mid$ Optional spoken answer $\mid$ Follow-up action
+\end{minipage}}
+\caption{AgentBridge module architecture.}\label{fig:arch}
+\end{figure}
+
+\section{Technical justification and supporting analysis}
+TypeScript contracts at the API boundary reduce accidental confusion among a general reply, an image analysis and a structured translation result. The provider layer keeps model-specific calls out of controllers. Request validation limits malformed text and oversized images before inference. A persistent WebSocket reduces repeated connection setup in live mode, while a latest-frame buffer avoids a backlog of outdated descriptions. These are design reasons; their effect on real response time remains to be measured.
+
+The application uses device-side profile persistence rather than server-side personal-history storage. That limits central retention in the current prototype but does not remove privacy issues from cloud model calls. A future evaluation must inspect transmitted fields and confirm that bystander images and sensitive documents are handled appropriately.
+
+\section{Assumptions and benchmarks}
+The Phase-I prototype assumes a compatible Android or iOS device, a reachable backend, provider credentials and permission for camera and microphone features. Performance claims require measurements with a specified device, network, model, prompt and task set. The planned benchmarks are task completion, transcription or OCR error, translation adequacy, description usefulness, response latency, data use and battery effect. Results should be stratified by language and accessibility need where sample sizes allow.
+
+\section{Techniques proposed}
+The research will use task-based evaluation rather than only a model's generic benchmark. A test set can include signs, labels and common indoor scenes, with expected facts and critical omissions identified in advance. The team will record model answers and ask intended users whether the response was understandable and actionable. For speech and translation, native speakers should examine meaning preservation. All tests need an explicit consent process and a way to correct or withdraw captured data.
+
+\section{Feasibility and sustainability considerations}
+The existing smartphone prototype demonstrates a feasible integration path on common development tools. A low-cost wearable remains an objective, not an implemented result. Its feasibility depends on a bill of materials, battery and thermal behavior, connectivity, durable controls, and whether a phone-linked design is more practical than a standalone device. The project should also estimate per-request provider cost and the effect of repeated live frames before calling the service affordable.
+
+\chapter{Preliminary Design, Analysis and Phase-I Progress}
+\section{Phase-I activities and progress}
+The team prepared a 20-paper literature review, identified the proposed modules and built an AgentBridge repository with a mobile client and backend. Table~\ref{tab:progress} separates implemented paths from incomplete evaluation. It records repository evidence, not a claim that every path has passed field testing.
+\begin{table}[H]\centering\small\renewcommand{\arraystretch}{1.14}
+\caption{Phase-I progress against the four project objectives}\label{tab:progress}
+\begin{tabularx}{\textwidth}{|p{0.22\textwidth}|p{0.43\textwidth}|X|}\hline
+\textbf{Objective} & \textbf{Current evidence} & \textbf{Remaining work}\\\hline
+Multi-disability access & Profile choices, visible chat and vision results, speech output, touch controls. & Screen-reader audit and evaluation with intended users.\\\hline
+Multilingual assistance & Seven language options and translation routes are implemented. & Accuracy tests for each language and device speech engine.\\\hline
+Context and agent coordination & Master Agent, provider layer, vision and translation routes, recent history and live path. & Long-term context policy and measured routing quality.\\\hline
+Affordable rural access & Mobile prototype and fallback behavior. & Hardware prototype, network testing, cost and battery study.\\\hline
+\end{tabularx}
+\end{table}
+
+\subsection{Mobile application and onboarding}
+The repository contains a five-screen onboarding flow, home screen, assistant, vision, live and translation screens. A profile store persists choices through AsyncStorage. The visible UI includes text output and touch controls for camera and speech-related actions. The code provides a basis for an accessibility review, but the repository does not include a completed audit with TalkBack, VoiceOver or participants.
+
+\subsection{Backend and specialized services}
+The Express service exposes health, assistant, vision and translation routes. A Gemini provider supplies text and image inference when a server-side key is configured. The Master Agent labels text and image requests and returns consistent metadata. A dedicated Translation Agent handles text and image translation. The live service accepts WebSocket frames and processes the freshest pending frame when inference is busy.
+
+\subsection{Integration and status handling}
+The client handles loading, provider errors and connection status. A missing model key returns an unavailable response rather than a fabricated answer. Voice recognition is disabled in Expo Go and requires a development build. The repository comments and older progress notes differ in places as features evolved; this report follows the current source files for implementation status.
+
+\section{Preliminary design}
+\subsection{Input and profile record}
+Each interaction is associated with a language and may include visual, hearing, speech or general ease-of-use preferences. The assistant request sends text and recent turns; the vision request sends an image, task prompt and recent turns; translation requests specify source and target languages. The app should minimize what it sends to the backend and clearly distinguish persistent profile data from per-request data.
+
+\subsection{Response and error record}
+The backend returns a reply, capability label, model and language for assistant and vision calls. Translation returns translated content, and image translation returns extracted and translated text separately. Validation and provider failures use explicit error status codes. A user-facing error should say whether the problem is a missing permission, network fault, unavailable provider or unrecognized input.
+
+\subsection{Live session record}
+Live mode transmits compressed camera frames, receives short descriptions and can speak them aloud. The current implementation includes reconnect handling and a REST fallback. It should log enough non-sensitive timing data for evaluation without retaining captured frames by default. The future test protocol will record device, network, frame interval, successful narrations, stale or omitted descriptions and average and tail latency.
+
+\section{Preliminary implementation or proof of concept}
+The proof of concept is a connected mobile and backend application. A user can complete onboarding, type a question, request a photo description or OCR-like reading, translate text or image text, and use live narration when the service is available. The code also supports spoken replies and development-build voice input. These are implementation observations from the repository; no controlled user study or published accuracy benchmark is supplied with the project materials.
+
+\section{Preliminary checks, tests and observations}
+Table~\ref{tab:checks} summarizes checks that can be made from the current code and the evaluation still needed. It avoids numerical quality claims because the attached literature review and repository do not supply a reproducible benchmark dataset and results for this implementation.
+\begin{table}[H]\centering\small\renewcommand{\arraystretch}{1.14}
+\caption{Preliminary implementation checks and open validation}\label{tab:checks}
+\begin{tabularx}{\textwidth}{|p{0.30\textwidth}|p{0.34\textwidth}|X|}\hline
+\textbf{Area} & \textbf{Current observation} & \textbf{Validation needed}\\\hline
+Text assistance & Request validation and model routing are implemented. & Answer usefulness and context retention across tasks.\\\hline
+Vision and OCR-like reading & Still-image route and follow-up flow exist. & Fact accuracy, omissions and readable-text error.\\\hline
+Speech & Mobile synthesis and recognition controls exist. & Native-device test by language and noisy setting.\\\hline
+Translation & Typed and camera-text paths exist. & Meaning preservation, script handling and critical-label review.\\\hline
+Live narration & WebSocket path and REST fallback exist. & Latency, stale frame rate, battery and data usage.\\\hline
+Accessibility & Preferences and touch alternatives exist. & Screen-reader and participant evaluation.\\\hline
+\end{tabularx}
+\end{table}
+
+\section{Challenges and decisions}
+\subsection{Model accuracy and overconfidence}
+Generated descriptions can sound certain even when the image is blurred or the requested object is absent. The interface should ask for a clearer image, present uncertainty and avoid unsupported navigation instructions. The next phase will count critical omissions separately from harmless wording differences.
+
+\subsection{Multilingual variation}
+A language option or model prompt does not guarantee accurate speech recognition or translation. Device support and accent variation must be tested. Critical content, such as dosage or deadlines, needs a stricter review protocol than casual conversation.
+
+\subsection{Network dependence and live latency}
+Cloud inference can be slow on rural networks. The latest-frame buffer prevents an ever-growing queue, but it may skip intermediate events. The fallback path improves availability at the cost of slower updates. Phase II will measure those effects and define when the app should stop claiming a live description is current.
+
+\subsection{Privacy and user participation}
+The camera may capture private information and bystanders. Consent, retention and deletion decisions must precede field data collection. Participatory testing is necessary because developer judgment alone cannot establish whether the response, controls and spoken output work for the intended users.
+
+\chapter{Expected Outcomes and Phase-II Plan}
+\section{Expected outcomes linked to objectives}
+\subsection{Objective 1: Multimodal disability support}
+The expected result is a mobile interaction flow in which intended users can complete selected text, camera and speech tasks using modes appropriate to their needs. Success will be judged by task completion, errors, user effort and accessibility feedback, not by a feature checklist alone.
+
+\subsection{Objective 2: Multilingual assistance}
+The expected result is measured support for the seven proposed languages on a defined set of conversation, translation and reading tasks. Results should report each language separately, including critical meaning errors and device speech-recognition limits.
+
+\subsection{Objective 3: Context-aware agent coordination}
+The expected result is correct routing of common requests and useful follow-up responses without unnecessary repetition. The evaluation will compare tasks with and without recent context, and will inspect whether personalization changes the output in a helpful and respectful way.
+
+\subsection{Objective 4: Affordable rural accessibility}
+The expected result is a documented cost and connectivity analysis and, if feasible, a portable or wearable prototype. No price or rural deployment outcome is claimed at Phase I. The design should be revised if bandwidth, provider charges, battery demand or maintenance make a proposed device impractical.
+
+\section{Project plan, milestones and timeline}
+The supplied project plan spans twelve months. Table~\ref{tab:milestones} follows its stages while recording the present prototype status. Dates should be set by the department's review calendar rather than inferred from the source slide.
+\begin{table}[H]\centering\small\renewcommand{\arraystretch}{1.15}
+\caption{Project milestones and present status}\label{tab:milestones}
+\begin{tabularx}{\textwidth}{|p{0.16\textwidth}|p{0.51\textwidth}|X|}\hline
+\textbf{Period} & \textbf{Planned work from project review} & \textbf{Status}\\\hline
+Months 1--2 & Literature survey, requirements and technology selection. & Review supplied; requirements outlined.\\\hline
+Months 3--4 & Architecture, agent workflow, model integration and data design. & Mobile and backend architecture present; storage design limited.\\\hline
+Months 5--6 & Master, vision, translation and speech development. & Core paths present in source.\\\hline
+Months 7--8 & Agent integration, context, authentication and API optimization. & Integration present; long-term context and authentication require review.\\\hline
+Months 9--10 & Accessible interface, performance optimization and testing. & Interface present; formal user and performance tests remain.\\\hline
+Months 11--12 & Evaluation, documentation, deployment and demonstration. & Planned.\\\hline
+\end{tabularx}
+\end{table}
+
+\subsection{Proposed Phase-II timeline}
+The next work should begin with a consented evaluation protocol and a small, representative task set. The team can then run language and vision tests on named devices and networks, review failures with intended users, revise prompts and UI behavior, and repeat the same tasks. Wearable decisions should follow cost and battery measurements. The final review should include limitations and a reproducible test record.
+
+\section{Work planned for Phase II}
+\subsection{Accessibility and participatory evaluation}
+Recruit participants through appropriate institutional channels and obtain informed consent. Test whether each participant can reach the assistant, select a mode, request help, understand the response and recover from an error. Include screen-reader and large-text checks. Record usability feedback in the participants' own terms and avoid treating one disability category as a uniform experience.
+
+\subsection{Language and model evaluation}
+Prepare common signs, labels, requests and conversation turns in the supported languages. Have qualified speakers review transcriptions and translations. For vision, separate object recognition, text reading, spatial description and follow-up questions. Count critical mistakes and omitted warnings rather than reporting only an average similarity score.
+
+\subsection{Latency, network and cost analysis}
+Measure text, still-image and live response time on Wi-Fi and representative mobile networks. Include failed requests, reconnects and stale descriptions. Track data transferred, battery use and provider calls. Compare the existing live frame interval with a lower-bandwidth setting to identify a workable rural configuration.
+
+\subsection{Privacy and wearable feasibility}
+Document where images, messages and profile fields travel, how long they are held and how they can be deleted. Evaluate a phone-linked wearable before designing standalone hardware. Estimate component, connectivity and maintenance costs. A wearable claim should be supported by an assembled device and user testing, not only by an architecture drawing.
+
+\subsection{System testing and final report}
+Record the application version, device, provider model, settings and task set for each result. Fix failures found during evaluation and rerun the affected tests. The final report should distinguish measured findings from design goals and include examples of unsuccessful cases and remaining risks.
+
+\section{Conclusions from Phase I}
+Phase I produced a literature-informed AgentBridge architecture and a working mobile and backend prototype with several assistive interaction paths. The source files support the existence of onboarding, text assistance, still-image analysis, translation, speech controls and live narration. The supplied materials do not yet support claims about field effectiveness, safe navigation, equal quality across seven languages or affordable wearable deployment. Those questions define the Phase-II study.
+
+\cleardoublepage\phantomsection\addcontentsline{toc}{chapter}{REFERENCES}
+\begin{thebibliography}{99}\setstretch{1.03}\small
+\bibitem{rajagopal} A. Rajagopal, V. Nirmala, I. J. Jebadurai, A. M. Vedamanickam, and P. U. Kumar, ``Design of Generative Multimodal AI Agents to Enable Persons with Learning Disability,'' \emph{ICMI Companion}, 2023, doi: 10.1145/3610661.3617514.
+\bibitem{roomkham} S. Roomkham, S. Terris, and L. Sitbon, ``Multi-modal Conversational Search for People with Intellectual Disability: An Exploratory Study,'' \emph{CHI Extended Abstracts}, 2022, doi: 10.1145/3491101.3519821.
+\bibitem{pedemonte} G. Pedemonte, M. Leotta, and M. Ribaudo, ``Improving Web Accessibility With an LLM-Based Tool: A Preliminary Evaluation for STEM Images,'' \emph{IEEE Access}, vol. 13, pp. 107566--107582, 2025, doi: 10.1109/ACCESS.2025.3577519.
+\bibitem{xu} Z. Xu, F. Liu, G. Xia, Y. Duan, and L. Yu, ``A Scoping Review of Inclusive and Adaptive Human--AI Interaction Design for Neurodivergent Users,'' \emph{Disability and Rehabilitation: Assistive Technology}, 2026, doi: 10.1080/17483107.2025.2579822.
+\bibitem{kavitha} D. Kavitha, A. Raj, S. Singh, V. Khandelwal, and M. K. Jindal, ``Context-Aware AI Assistant Using Open AI,'' \emph{ICITIIT}, 2025, doi: 10.1109/ICITIIT64777.2025.11040644.
+\bibitem{aljedaani} W. Aljedaani and R. H. Mollik, ``Large Language Models for Web Accessibility: A Systematic Literature Review,'' \emph{Web for All Conference}, 2026, doi: 10.1145/3800424.3800452.
+\bibitem{jan} S. Jan, T. A. Syed, A. Akarma, A. Ali, and M. R. Belgaum, ``Agentic AI Framework for Individuals with Disabilities and Neurodivergence: A Multi-Agent System for Healthy Eating, Daily Routines, and Inclusive Well-Being,'' arXiv:2511.22737, 2025.
+\bibitem{zatserkovnyi} R. Zatserkovnyi, Z. Novosad, and R. Zatserkovna, ``Large Language Models for Inclusive Image Captioning,'' \emph{International Conference on Information Technology}, 2025, doi: 10.1109/IT64745.2025.10930278.
+\bibitem{yang} B. Yang, L. Xu, L. Zeng, et al., ``ContextAgent: Context-Aware Proactive LLM Agents with Open-World Sensory Perceptions,'' arXiv:2505.14668, 2025.
+\bibitem{siddiqui} M. S. Siddiqui, T. A. Syed, and A. Akarma, ``ADAPT: An Agentic AI Framework for People with Disabilities and Neurodivergence,'' \emph{Journal of Disability Research}, 2026, doi: 10.57197/JDR-2026-0830.
+\bibitem{kim} J. Kim, J. Park, J. Park, S. Lee, J. Chung, J. Kim, J. H. Joung, and Y. Yu, ``GuideDog: A Real-World Egocentric Multimodal Dataset for Blind and Low-Vision Accessibility-Aware Guidance,'' arXiv:2503.12844, 2025.
+\bibitem{penuela} R. G. Pe\~nuela, F. Arias-Russi, and V. Capriles, ``Guiding Multimodal Large Language Models with Blind and Low Vision People Visual Questions for Proactive Visual Interpretations,'' arXiv:2510.01576, 2025.
+\bibitem{baghel} S. S. Baghel, Y. P. S. Rathore, S. Jena, A. Pradhan, A. Shukla, A. Bhavsar, and P. Goyal, ``Towards Blind and Low-Vision Accessibility of Lightweight VLMs and Custom LLM-Evals,'' \emph{MMLoSo}, 2025.
+\bibitem{magay} A. Magay, D. Tripathi, Y. Hao, and Y. Fang, ``A Light and Smart Wearable Platform with Multimodal Foundation Model for Enhanced Spatial Reasoning in People with Blindness and Low Vision,'' arXiv:2505.10875, 2025.
+\bibitem{cao} X. Cao, K. P. Ju, C. Li, V. Potluri, and D. Jain, ``RAVEN: Realtime Accessibility in Virtual ENvironments for Blind and Low-Vision People,'' \emph{CHI}, 2026, doi: 10.1145/3772318.3791616.
+\bibitem{reinders} S. Reinders, M. Zaib, M. Butler, B. Lee, I. Zukerman, L. Qu, and K. Marriott, ``Supporting Multimodal Data Interaction on Refreshable Tactile Displays: An Architecture to Combine Touch and Conversational AI,'' \emph{IEEE PacificVis}, 2026, doi: 10.1109/PacificVis68791.2026.00013.
+\bibitem{raif} M. Raif, H. Chaibi, N. Quadar, A. El Rharras, and R. Saadane, ``Edge-IoT and MLLMs for Education and Scene Understanding: Assisting Vision and Hearing-Impaired Individuals,'' \emph{IEEE Internet of Things Magazine}, 2025, doi: 10.1109/IOTM.001.2400202.
+\bibitem{jebreen} I. Jebreen, S. Nashwan, A. Al-Qerem, A. M. Ali, M. A. Al Khaldy, and M. Rajab, ``Adaptive Computer Vision Solutions for Individuals with Special Needs,'' 2025, doi: 10.1109/ICCIAA65327.2025.11013323.
+\bibitem{ansah} J. O. Ansah, A. Kapoor, A. Khanna, M. Vinod, P. Njeck, and S. Gao, ``Insight: Enhancing Mobile Accessibility for Blind and Visually Impaired Users with LLMs,'' arXiv:2605.09803, 2026.
+\bibitem{mate} A. Algazinov, M. Laing, and P. Laban, ``MATE: LLM-Powered Multi-Agent Translation Environment for Accessibility Applications,'' arXiv:2506.19502, 2025.
+\bibitem{wcag} World Wide Web Consortium, ``Web Content Accessibility Guidelines (WCAG) 2.2,'' W3C Recommendation, 2023.
+\end{thebibliography}
+
+\appendix
+\titleformat{\chapter}[display]{\centering\bfseries\large}{APPENDIX \thechapter}{8pt}{\large\MakeUppercase}
+\chapter{Contribution of Team Members}
+\section{Individual contributions}
+The division in Table~\ref{tab:team} follows the attached group literature review. It states assigned responsibility; the repository alone does not provide a verified individual commit or time record.
+\begin{table}[H]\centering\small\renewcommand{\arraystretch}{1.16}
+\caption{Team responsibilities and planned work}\label{tab:team}
+\begin{tabularx}{\textwidth}{|p{0.27\textwidth}|p{0.33\textwidth}|X|}\hline
+\textbf{Name and registration no.} & \textbf{Assigned responsibility} & \textbf{Phase-II focus}\\\hline
+Domakuntla Sai Ritesh\newline 23071A0577 & Master Agent and backend: coordination, intent and context. & Routing tests, backend reliability and context evaluation.\\\hline
+Mohammad Arbaz Ahmed\newline 23071A05A0 & Vision Agent: OCR, object recognition and image understanding. & Vision task set, critical-error review and live-mode measures.\\\hline
+Papini Abhinav\newline 23071A05B2 & Speech and Translation Agents: STT, TTS and languages. & Language evaluation, speech tests and translation review.\\\hline
+Pendela Manikanta\newline 23071A05B5 & Frontend and accessibility: interface, integration and testing. & Participatory usability and screen-reader checks.\\\hline
+\end{tabularx}
+\end{table}
+\section{Shared work}
+The team jointly defined the accessibility problem, reviewed the literature and integrated the project modules. The next phase requires shared analysis of errors and user feedback so that one component's improvement does not reduce the usability of the complete application.
+
+\chapter{Relevance to Sustainable Development Goals}
+AgentBridge is relevant to SDG 10, Reduced Inequalities, because its intended benefit is access to information and assistance for people facing disability and language barriers. A low-cost rural version could also support inclusion in underserved settings. These are intended contributions. The current prototype has not measured social impact or demonstrated an affordable wearable at scale.
+
+\chapter{Literature Map}
+\begingroup\small\setstretch{1.08}
+\begin{longtable}{@{}p{0.11\textwidth}p{0.40\textwidth}p{0.41\textwidth}@{}}
+\caption{Literature map of related studies}\label{tab:literaturemap}\\
+\toprule Paper & Reported focus & Relevance to AgentBridge\\\midrule\endfirsthead
+\caption[]{Literature map of related studies (continued)}\\
+\toprule Paper & Reported focus & Relevance to AgentBridge\\\midrule\endhead
+1 \cite{rajagopal} & Multimodal generative support for learning disability. & Motivates flexible presentation and modality choice.\\
+2 \cite{roomkham} & Conversational search for intellectual disability. & Supports understandable, task-led question answering.\\
+3 \cite{pedemonte} & Generated descriptions for complex STEM images. & Motivates image explanation and review of errors.\\
+4 \cite{xu} & Inclusive and adaptive AI for neurodivergent users. & Requires participatory and longer-term evaluation.\\
+5 \cite{kavitha} & Context-aware general assistant. & Informs use of recent interaction history.\\
+6 \cite{aljedaani} & LLMs in web accessibility. & Identifies fragmentation and evaluation gaps.\\
+7 \cite{jan} & Collaborative agents for disability-related wellbeing. & Supports modular roles with broader task coverage.\\
+8 \cite{zatserkovnyi} & Inclusive image captioning. & Supports the Vision Agent but not a full platform claim.\\
+9 \cite{yang} & Proactive agents using sensory context. & Motivates contextual assistance and privacy review.\\
+10 \cite{siddiqui} & ADAPT agent framework. & Informs personalization and need for real-user evidence.\\
+11 \cite{kim} & GuideDog accessibility-aware vision dataset. & Informs scene task and spatial-error testing.\\
+12 \cite{penuela} & BLV people's visual questions. & Motivates concise, user-directed responses.\\
+13 \cite{baghel} & Lightweight vision-language models and evaluation. & Informs device-resource and output-quality tests.\\
+14 \cite{magay} & Wearable spatial reasoning. & Guides portable-device feasibility questions.\\
+15 \cite{cao} & Real-time virtual-environment accessibility. & Informs responsive descriptions, with different setting.\\
+16 \cite{reinders} & Tactile display with conversational AI. & Shows value of multiple output modes.\\
+17 \cite{raif} & Edge-IoT and multimodal sensory assistance. & Informs connectivity and edge-deployment study.\\
+18 \cite{jebreen} & Adaptive computer vision for special needs. & Motivates robustness testing in ordinary environments.\\
+19 \cite{ansah} & LLM support for mobile accessibility. & Informs assistance beyond sequential screen navigation.\\
+20 \cite{mate} & Multi-agent translation for accessibility. & Supports dedicated translation contracts and review.\\
+\bottomrule
+\end{longtable}\endgroup
+
+\end{document}
