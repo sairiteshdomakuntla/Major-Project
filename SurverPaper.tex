@@ -204,71 +204,66 @@ multilingual pre-training with extensible vocabulary expansion enables zero-shot
 cross-lingual transfer, which is directly applicable to low-resource Indic command parsing.
 
 \subsection{Real-Time Streaming and Edge-Cloud Architectures}
-The WebSocket protocol (RFC~6455) was established by Fette and Melnikov~\cite{fette2011websocket},
-setting the groundwork for persistent full-duplex browser-server communication. Their
-protocol analysis found that WebSockets decrease per-message overhead from 871~bytes
-(HTTP polling) to 2~bytes (WebSocket frame header), allowing high-frequency frame
-transmission with low bandwidth cost.
+Fette and Melnikov~\cite{fette2011websocket} defined the WebSocket protocol (RFC~6455),
+which laid the foundations for full-duplex, persistent communication between browser and server.
+According to their protocol analysis, the overhead for each message is reduced from 871~bytes
+(as would occur with HTTP polling) to 2~bytes (the WebSocket frame header) with WebSockets,
+which means that frame transmission occurs at high frequencies at a low bandwidth cost.
 
-Morris~\cite{morris2020ai} offered an extensive overview of AI accessibility opportunities
-and challenges, stating that latency, cost, and model hallucination are the three main
-limitations preventing practical deployment. He also highlighted the danger of MLLMs
-producing confident but incorrect spatial descriptions---a critical safety issue for blind
-navigation users.
+Morris~\cite{morris2020ai} provided an extensive overview of the opportunities and challenges
+of AI accessibility, mentioning three key limitations: latency, cost, and model hallucination.
+He also noted that MLLMs can sometimes be very confident in their spatial descriptions,
+which poses a significant safety problem for users of blind navigation.
 
-The W3C~\cite{w3c2023wcag} released WCAG~2.2 with 87 accessibility success criteria
-for web content. Generally, WCAG~2.2 covers UI-level accessibility (e.g.,
-screen reader support, color contrast, and keyboard navigation) but offers no guidance
-on AI-generated content quality, ephemeral data handling, or streaming inference
-architectures---a normative gap this research directly addresses.
+The W3C~\cite{w3c2023wcag} published WCAG~2.2, containing 87 web content accessibility
+success criteria. In general, WCAG~2.2 is focused on making websites accessible from a UI
+aspect (such as keyboard navigation, color contrast, screen reader support) and lacks any
+guidance on the quality of AI-generated content, handling of ephemeral data, or streaming
+inference architectures---a gap this research directly addresses.
 
 %%=============================================================%%
 %% SECTION 3: RESEARCH GAP
 %%=============================================================%%
 \section{Research Gap}\label{sec:gap}
 
-The literature reviewed in Section~\ref{sec:litsurvey} reveals the following
-unresolved gaps that collectively motivate this research work:
+The gaps identified in the literature (Section~\ref{sec:litsurvey}) motivate this research work:
 
 \begin{enumerate}
 
-\item \textbf{No unified cross-disability platform exists.} None of the reviewed
-commercial products---Seeing AI~\cite{microsoftSeeingAI}, Lookout~\cite{lookout2020},
-Envision AI~\cite{envision2022}, Be My Eyes~\cite{bemyeyes2021}---goes beyond
-visual impairments. Users with multiple disabilities (e.g., simultaneous vision and
-speech deficits) have no single solution that handles them. No academic prototype
-reviewed integrates visual, auditory, vocal, and cognitive assistance within a single
-coherent system.
+\item \textbf{There is a lack of a single cross-disability platform.}
+The commercial products reviewed---Seeing AI~\cite{microsoftSeeingAI}, Lookout~\cite{lookout2020},
+Envision AI~\cite{envision2022}, and Be My Eyes~\cite{bemyeyes2021}---do not address
+visual impairments beyond a narrow scope. There is no single solution that handles multiple
+disabilities (e.g., simultaneous vision and speech impairments). No academic prototype
+reviewed combines visual, auditory, vocal, and cognitive support within a unified system.
 
-\item \textbf{Indic languages are absent from all major assistive AI products.}
-Although there are 500\,M+ Hindi and 80\,M+ Telugu speakers, no assistive platform
-offers on-device phonetic command parsing in native Indic scripts or Romanized
-transliteration. As noted by Kumar et al.~\cite{kumar2022indic} and Jawahar et
-al.~\cite{jawahar2021indicnlp}, off-the-shelf ASR exhibits 2--5$\times$ higher WER
-on Indian language speech, so purely cloud-based ASR is unreliable for
-safety-critical voice commands.
+\item \textbf{All major assistive AI products lack support for Indic languages.}
+Despite 500\,M+ Hindi speakers and 80\,M+ Telugu speakers, no assistive platform supports
+on-device phonetic command parsing in native Indic scripts or Romanized transliteration.
+As Kumar et al.~\cite{kumar2022indic} and Jawahar et al.~\cite{jawahar2021indicnlp} pointed
+out, off-the-shelf ASR achieves 2--5$\times$ higher WER on Indian language speech, making
+purely cloud-based ASR unsuitable for safety-critical voice commands.
 
-\item \textbf{No system guarantees live narration with a validated sub-second latency.}
-Current solutions have latencies of 1.8--6.0\,s per frame using REST calls, significantly
-above the practical threshold for pedestrian navigation. To the best of our knowledge, no
-published work provides an empirically validated end-to-end narration pipeline
-with freshest-frame queueing, single-concurrency enforcement, and a multi-model cascade
-achieving below 1\,s across real mobile network conditions.
+\item \textbf{No system ensures live narration with a validated sub-second latency.}
+Current solutions achieve latencies of 1.8--6.0\,s per frame using REST calls, well beyond
+the practical threshold for pedestrian navigation. To the best of our knowledge, no published
+work provides an end-to-end narration pipeline with freshest-frame queueing, single-concurrency
+enforcement, and a multi-model cascade performing below 1\,s under real mobile network conditions.
 
-\item \textbf{In the absence of privacy architecture, assistive streaming feeds remain exposed.}
-Cloud-based assistive platforms archive continuous camera feeds and transcripts.
-Neither WCAG 2.2~\cite{w3c2023wcag} nor any reviewed system specifies or validates
-an ephemeral, zero-persistence processing model for assistive AI video streams.
+\item \textbf{Without privacy architecture, assistive streaming feeds remain vulnerable.}
+Continuous camera feeds and transcripts are stored on cloud-based assistive platforms.
+Neither WCAG 2.2~\cite{w3c2023wcag} nor any reviewed system specifies or validates an
+ephemeral, zero-persistence processing model for assistive AI video streams.
 
-\item \textbf{Multi-turn visual dialogue is unsupported.} All scene-understanding
-systems (Seeing AI, Lookout, Envision AI) operate in single-turn snapshot mode.
-No system retains conversational context to ground follow-up queries to prior
-visual responses, limiting natural interaction for users who ask sequential
-questions about a scene.
+\item \textbf{There is no support for multi-turn visual dialogue.}
+All scene-understanding systems (Seeing AI, Lookout, Envision AI) are single-turn snapshot
+systems. No system preserves conversational context to support subsequent requests based on
+prior visual responses, reducing the ability for natural interaction when users issue
+sequential visual queries.
 
 \end{enumerate}
 
-Table~\ref{tab:gap} summarises these gaps against all reviewed systems.
+All these gaps are summarised in Table~\ref{tab:gap} against all reviewed systems.
 
 \begin{table}[htbp]
 \caption{Capability comparison of existing systems against this research work's
@@ -296,15 +291,15 @@ Voice Assistants                      & $\times$ & $\sim$   & $\sim$   & $\times
 The proposed three-tier client-edge-cloud assistive framework consists of a
 \textbf{Client Tier} (React Native mobile application), an \textbf{Orchestration
 Gateway} (Node.js Master Agent), and a \textbf{Multimodal AI Cloud} (MLLM inference
-backends). Each architectural tier is designed to directly resolve one or more
-research gaps identified in Section~\ref{sec:gap}.
+backends). The architectural tiers are designed to directly address one or more research gaps
+identified in Section~\ref{sec:gap}.
 
 \subsection{Cross-Disability Adaptive Profiling}
 
-Onboarding involves the selection of a need vector
-$N \in \{\text{visual},\,\text{hearing},\,\text{speech},\,\text{general}\}$.
-This profile is saved locally and sent with each inference request. The
-Orchestration Gateway dynamically compiles the AI system prompt via:
+The choice of a need vector
+$N \in \{\text{visual},\,\text{hearing},\,\text{speech},\,\text{general}\}$ is included
+in the onboarding process. This profile is stored locally and passed along with every
+inference request. The Orchestration Gateway dynamically builds the AI system prompt using:
 \begin{equation}
   \mathcal{S}(L,\,N) \;=\;
   \mathcal{P}_{\text{base}}
@@ -314,16 +309,16 @@ Orchestration Gateway dynamically compiles the AI system prompt via:
   \bigoplus_{n\,\in\,N} \mathcal{H}_{\text{need}}(n)
 \end{equation}
 where $\mathcal{P}_{\text{base}}$ is the universal base prompt,
-$\mathcal{T}_{\text{lang}}(L)$ injects the user's language instruction ($L \in
+$\mathcal{T}_{\text{lang}}(L)$ is the language instruction prompt for the user's language ($L \in
 \{\text{en-US},\,\text{hi-IN},\,\text{te-IN}\}$), and $\mathcal{H}_{\text{need}}(n)$
-applies need-specific constraints: egocentric spatial coordinates for visual impairment,
+are need-specific constraints: egocentric spatial coordinates for visual impairment,
 suppression of auditory references for hearing impairment, and verbosity reduction for
 speech impairment.
 
 \subsection{WebSocket Live Scene Narration Pipeline}
 
-To achieve Objective~3 (real-time narration), the system implements a freshest-frame
-WebSocket pipeline formalised in Algorithm~\ref{alg:streaming}.
+To meet Objective~3 (real-time narration), the system uses a freshest-frame
+WebSocket pipeline specified in Algorithm~\ref{alg:streaming}.
 
 \begin{algorithm}[htbp]
 \caption{Freshest-Frame Single-Concurrency Streaming Algorithm}
@@ -365,19 +360,19 @@ The total end-to-end latency budget is:
 
 \subsection{Multilingual Phonetic Command Engine}
 
-Voice commands are categorized using an on-device normalized phonetic pattern matcher.
-Input transcripts are normalized to Unicode NFC format and stripped of punctuation
-(including the Devanagari \textit{danda} `|`), and then matched against a multi-script
-token tree. The command categorization function is:
+An on-device normalized phonetic pattern matcher classifies voice commands.
+Input transcripts are processed to Unicode NFC normalized form with punctuation
+(including the Devanagari \textit{danda} `|') removed, and then compared against a
+multi-script token tree. The command categorization function is:
 \begin{equation}
   \mathcal{C}(u) \;=\;
   \arg\max_{a\,\in\,\mathcal{A}}\;
   \sum_{p\,\in\,\mathcal{P}_a} \mathbb{1}\bigl[\text{norm}(u) \supseteq p\bigr]
 \end{equation}
-where $\mathcal{A}$ is the action set, $\mathcal{P}_a$ is the set of phonetic
-patterns for action $a$, and $\mathbb{1}[\cdot]$ is the indicator function.
-Unmatched utterances default to \texttt{followup}, forwarding the natural-language
-query directly to the conversational MLLM pipeline.
+where $\mathcal{A}$ represents the set of actions, $\mathcal{P}_a$ denotes the set of
+phonetic patterns of action $a$, and $\mathbb{1}[\cdot]$ is the indicator function.
+When no matching patterns are found, the natural-language query is forwarded directly to
+the conversational MLLM pipeline with the default \texttt{followup} mode.
 
 The action vocabulary covers both native scripts and Romanized transliterations:
 \begin{equation}
@@ -431,22 +426,23 @@ Comparison of results with previous systems will be provided where available.
 
 \subsection{Experimental Setup}
 
-All benchmarks were conducted on a physical Android device (Snapdragon 8 Gen 2,
+The experiments were run on a physical Android device (Snapdragon~8~Gen~2,
 12\,GB RAM) connected to a Node.js backend server (8-core Intel Xeon, 16\,GB RAM).
-Network conditions simulated were: (i)~stable Wi-Fi at 50\,Mbps, and
-(ii)~mobile 4G LTE at 15\,Mbps with 60\,ms round-trip jitter. Inference backends
-used the Gemini 2.5 Flash-Lite model as primary and Gemini 2.5 Flash as fallback.
+Network conditions simulated were: (i)~stable Wi-Fi with 50\,Mbps bandwidth, and
+(ii)~mobile 4G LTE with 15\,Mbps bandwidth and 60\,ms round-trip jitter. The
+Gemini~2.5 Flash-Lite model served as the primary inference backend, with
+Gemini~2.5 Flash as fallback.
 
 \subsection{Latency Analysis}
 
-The end-to-end latency budget decomposes as:
+The end-to-end latency budget is broken down as follows:
 \begin{equation}
   T_{\text{total}} = T_{\text{cap}} + T_{\text{net,up}} + T_{\text{infer}} +
                      T_{\text{net,dn}} + T_{\text{TTS}}
 \end{equation}
 
-Table~\ref{tab:latency} details mean and 95th-percentile latencies across 100
-consecutive requests per condition.
+Table~\ref{tab:latency} presents the mean and 95th-percentile latency values across
+100 consecutive requests per condition.
 
 \begin{table}[htbp]
 \caption{End-to-end latency breakdown (ms) across pipeline stages
@@ -482,19 +478,20 @@ even under 4G LTE---a condition untested and unreported by any prior system.
 
 Text extraction was evaluated on 120 standardised scenes spanning street signage,
 printed medication labels, handwritten notes, and restaurant menus under two
-illumination levels: standard (300\,lux) and low-light (30\,lux).
+light levels: normal (300\,lux) and low-light (30\,lux).
 
-Performance is measured by Word Error Rate (WER) and Character Error Rate (CER):
+The Word Error Rate (WER) and Character Error Rate (CER) are used to measure performance:
 \begin{equation}
   \text{WER} = \frac{S + D + I}{N_w}, \qquad
   \text{CER} = \frac{S_c + D_c + I_c}{N_c}
 \end{equation}
-where $S, D, I$ denote substitutions, deletions, and insertions at the word level,
-$S_c, D_c, I_c$ at the character level, and $N_w$, $N_c$ are reference lengths.
+where $S$, $D$, $I$ are substitutions, deletions, and insertions at the word level;
+$S_c$, $D_c$, $I_c$ are the corresponding errors at the character level; and
+$N_w$, $N_c$ are the reference lengths.
 
 \begin{table}[htbp]
 \caption{OCR accuracy comparison: WER (\%) across systems and scene types.
-         Lower is better. (--) = not reported by the system.}\label{tab:ocr}
+         Lower is better. (--) = no result reported for this system.}\label{tab:ocr}
 \begin{tabular}{@{}lcccc@{}}
 \toprule
 System & Printed Signs & Medication Labels & Handwritten & Low-Light \\
@@ -507,11 +504,11 @@ GPT-4V (Be My Eyes)~\cite{openai2023gpt4}& 5.1 & 7.4  & 14.2 & 17.8 \\
 \end{tabular}
 \end{table}
 
-Under adequate illumination, this research work achieves a WER of 4.2\% on printed
+Given adequate illumination, this research work achieves a WER of 4.2\% on printed
 signage and 6.8\% on curved medication containers. Under low-light (30\,lux), the
-system maintains WER of 11.4\%---a $\mathbf{36\%}$ reduction over the next-best
-reported system (GPT-4V, 17.8\%). This improvement is attributed to the adaptive
-system prompt that instructs the model to prefix uncertainty disclosures
+system achieves a WER of 11.4\%---a $\mathbf{36\%}$ improvement over the best
+reported system (GPT-4V, 17.8\%). The adaptive system prompt is considered responsible
+for this improvement, as it instructs the model to prefix uncertainty disclosures
 (``\textit{The image is dim, but I can make out\ldots}'') rather than hallucinating
 confident but erroneous text.
 
@@ -626,13 +623,13 @@ coverage to over 95\% of India's linguistically diverse population. Each languag
 requires dedicated multi-script token trees for native script, Romanized
 transliteration, and code-mixed colloquial speech.
 
-\item \textbf{Symbol Boards with the help of AI.} Combining predictive AAC symbol boards
-into the mobile application will be helpful for non-verbal users who rely on symbol
-selection rather than voice for communication. Predicting the conversational context
-can be very effective in reducing the mental effort involved in navigating symbol boards.
+\item \textbf{Symbol Boards with the help of AI.} Combining AAC symbol boards
+into the mobile application will be helpful for non-verbal users who depend on symbol
+selection instead of voice for communication. Predicting the context can be very effective
+in reducing the mental effort needed when navigating symbol boards.
 
-\item \textbf{Differential Privacy through Visual Anonymization.} Blurring faces and
-anonymizing license plates on-device before they are sent to the cloud will provide
+\item \textbf{Differential Privacy through Visual Anonymization.}
+Blurring faces and anonymizing license plates on-device before they are sent to the cloud will provide
 formal differential privacy guarantees for bystanders who may appear incidentally in
 the video stream during assistive navigation sessions.
 
