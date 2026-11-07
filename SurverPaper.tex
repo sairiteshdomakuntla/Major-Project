@@ -115,14 +115,14 @@ The objectives of this research work, each mapped to a defining keyword, are:
   with end-to-end latency below 850\,ms through a WebSocket streaming pipeline,
   single-concurrency frame queuing, and multi-model fallback cascade~\cite{fette2011websocket}.
 
-\item \textbf{[Multimodal Vision Intelligence]} To incorporate high-resolution on-demand
-visual inspection and live narration using multimodal large language models
-(MLLMs)~\cite{team2023gemini}, delivering optical character recognition (OCR), object
+\item \textbf{[Multimodal Vision Intelligence]} To embed on-demand high-resolution vision.
+Multimodal large language models (LLMs) can be used for visual inspection and live narration.
+(MLLMs)~\cite{team2023gemini} that can perform optical character recognition (OCR), object
 localization, and contextual scene understanding.
 
-\item \textbf{[Privacy-by-Design]} To design a zero-persistence ephemeral processing
-pipeline in which no camera frames, transcripts, or biometric tokens are persisted at
-any level of the system~\cite{w3c2023wcag}.
+\item \textbf{[Privacy-by-Design]} To design a `zero-persistence' ephemeral processing
+pipeline where no camera frame, transcript, or biometric tokens are stored in
+any version of the system~\cite{w3c2023wcag}.
 
 \item \textbf{[Multi-Turn Conversational Grounding]}To facilitate multi-turn visual dialogue with state information such that the user can pose additional questions on an already-seen image.
 \end{enumerate}
@@ -145,17 +145,16 @@ architectures. Below we survey the four principal research pillars.
 \subsection{Vision-Assistive Applications and Scene Understanding}
 The VizWiz platform was first used by Bigham et al.~\cite{bigham2010vizwiz} for
 crowd-sourced visual assistance, allowing blind users to take pictures and receive
-answers almost immediately from sighted volunteers. The study established an important
-fact: pictures taken by blind users show more blur, poorer framing, and less favorable
-illumination than standard benchmark images, and over 30\% of queries could not be
-answered by automated systems because of these characteristics. These findings
-established the need for uncertainty-aware AI models rather than confidence-first
-classifiers.
+answers almost immediately from sighted volunteers. The research conveyed a crucial point: pictures taken
+by blind users show a greater degree of blurring, poor framing and poor lighting than the non-blind users,
+and over 30\% of queries had no standard benchmark images that automated
+systems could answer because of these characteristics. These findings proved that there was a need
+for models that provide uncertainty estimates, not confidence values.
 
-Microsoft's Seeing AI~\cite{microsoftSeeingAI} improved the modularity of the CNN
-architecture by providing separate sub-modes (short text, barcode, scene, face) on iOS.
-However, each mode is an individual inference pipeline that lacks semantic continuity,
-since the system cannot answer questions about an object detected in the previous frame.
+Microsoft's Seeing AI~\cite{microsoftSeeingAI} enhanced the modularity that was part of the CNN architecture by
+introducing individual sub-modes (short text, barcode, scene, face) for iOS. However,
+each mode is an independent inference pipeline which does not have semantic continuity, because
+the system cannot answer a query about an object that was detected in the previous frame.
 
 Google Lookout~\cite{lookout2020} provided on-device continuous object and text detection
 via TensorFlow Lite, with snapshot latencies of 0.8--1.5\,s. Envision
@@ -165,33 +164,16 @@ in both systems.
 
 Guo et al.~\cite{guo2019visual} conducted a systematic benchmark of assistive mobile vision
 systems, finding that real-world error rates were 2--4$\times$ higher than controlled
-laboratory benchmarks due to environmental variability. Howard et al.~\cite{mobilenet2017}
-demonstrated that lightweight MobileNet architectures reduce inference latency significantly
-on mobile hardware, while Jocher et al.~\cite{yolo2023} showed that YOLO-family detectors
-achieve real-time object detection at over 100 frames per second on edge devices, though
-neither architecture supports rich, contextual natural language scene description.
+laboratory benchmarks due to environmental variability. Howard et al.~\cite{mobilenet2017} have proved that lightweight mobile architectures like MobileNet are able to drastically reduce inference latency on mobile hardware, while Jocher et al.~\cite{yolo2023} have demonstrated that object detection is possible in real-time (above 100 frames per second) on edge devices using YOLO-family detectors. But both architectures do not provide for rich, context-rich natural language scene description.
 
 \subsection{Multimodal Large Language Models}
-Vaswani et al.~\cite{vaswani2017attention} introduced the Transformer architecture, which
-became the backbone for all modern multimodal models. Brown et al.~\cite{brown2020gpt3}
-demonstrated with GPT-3 that language models at scale exhibit powerful few-shot learning
-across diverse tasks. OpenAI~\cite{openai2023gpt4} subsequently released GPT-4V, the first
-commercially deployed MLLM to integrate vision and text reasoning at production scale.
+The Transformer architecture~\cite{vaswani2017attention} paved the way for all current multimodal models. Brown et al.~\cite{brown2020gpt3} showed that few-shot learning is powerful in language models at scale across diverse tasks. Later, OpenAI~\cite{openai2023gpt4} introduced GPT-4V, the first commercially released MLLM that enables vision and text reasoning in a production pipeline.
 
-Gemini Team~\cite{team2023gemini} introduced the Gemini family of natively multimodal
-models processing interleaved text, images, and video in a unified token space. Their
-findings showed zero-shot scene description, dense OCR, and spatial reasoning performance
-far exceeding task-specific CNN pipelines, with the lightweight Flash-Lite variant achieving
-inference latencies under 500\,ms on stable internet connections.
+Gemini Team~\cite{team2023gemini} released the Gemini family of natively multimodal models, which can process interleaved text, images, and video in a single token space. They found that their method outperforms task-specific CNN pipelines by a wide margin for zero-shot scene description, dense OCR, and spatial reasoning, and inference is performed with under 500\,ms latency on stable internet connections, even for the lightweight Flash-Lite variant.
 
-Liu et al.~\cite{liu2024llava} proposed LLaVA, an open-weights instruction-tuned
-vision-language model trained by fine-tuning LLaMA on GPT-4-generated multimodal
-instruction data. Their ablation studies showed that visual instruction tuning
-substantially outperforms zero-shot prompting on scene description tasks, establishing
-a reproducible open-source baseline for accessibility research.
+Liu et al.~\cite{liu2024llava} introduced LLaVA, an open-weights instruction-tuned vision-language model that is fine-tuned from LLaMA using multimodal instruction data generated using GPT-4. In their ablation studies, visual instruction tuning achieved significantly better performance than zero-shot prompting on scene description tasks, providing a standardized reproducible open-source baseline for accessibility research.
 
-Be My Eyes~\cite{bemyeyes2021} integrated GPT-4V as a ``Virtual Volunteer'', confirming
-that MLLMs can substitute human sighted volunteers for routine visual queries. However,
+Be My Eyes~\cite{bemyeyes2021} adopted GPT-4V as a ``Virtual Volunteer'', suggesting that MLLMs can replace human sighted volunteers for simple visual queries. However,
 their deployment remains English-only, closed-source, and reliant on synchronous REST
 calls introducing 3.5--6.0\,s latency---unsuitable for real-time navigation.
 
@@ -222,11 +204,11 @@ multilingual pre-training with extensible vocabulary expansion enables zero-shot
 cross-lingual transfer, which is directly applicable to low-resource Indic command parsing.
 
 \subsection{Real-Time Streaming and Edge-Cloud Architectures}
-Fette and Melnikov~\cite{fette2011websocket} established the WebSocket protocol (RFC 6455),
+The WebSocket protocol (RFC~6455) was established by Fette and Melnikov~\cite{fette2011websocket},
 setting the groundwork for persistent full-duplex browser-server communication. Their
-protocol analysis found that WebSockets reduce per-message overhead from 871 bytes (HTTP
-polling) to 2 bytes (WebSocket frame header), allowing high-frequency frame transmission
-with low bandwidth cost.
+protocol analysis found that WebSockets decrease per-message overhead from 871~bytes
+(HTTP polling) to 2~bytes (WebSocket frame header), allowing high-frequency frame
+transmission with low bandwidth cost.
 
 Morris~\cite{morris2020ai} offered an extensive overview of AI accessibility opportunities
 and challenges, stating that latency, cost, and model hallucination are the three main
@@ -234,8 +216,8 @@ limitations preventing practical deployment. He also highlighted the danger of M
 producing confident but incorrect spatial descriptions---a critical safety issue for blind
 navigation users.
 
-The W3C~\cite{w3c2023wcag} introduced WCAG 2.2, containing 87 accessibility success
-criteria for web content. Crucially, WCAG 2.2 addresses UI-level accessibility (e.g.,
+The W3C~\cite{w3c2023wcag} released WCAG~2.2 with 87 accessibility success criteria
+for web content. Generally, WCAG~2.2 covers UI-level accessibility (e.g.,
 screen reader support, color contrast, and keyboard navigation) but offers no guidance
 on AI-generated content quality, ephemeral data handling, or streaming inference
 architectures---a normative gap this research directly addresses.
@@ -266,14 +248,14 @@ al.~\cite{jawahar2021indicnlp}, off-the-shelf ASR exhibits 2--5$\times$ higher W
 on Indian language speech, so purely cloud-based ASR is unreliable for
 safety-critical voice commands.
 
-\item \textbf{No system achieves validated sub-second live narration latency.}
-Current solutions have latencies of 1.8--6.0\,s per frame using REST calls, far above
-the practical threshold for pedestrian navigation. To the best of our knowledge, no
+\item \textbf{No system guarantees live narration with a validated sub-second latency.}
+Current solutions have latencies of 1.8--6.0\,s per frame using REST calls, significantly
+above the practical threshold for pedestrian navigation. To the best of our knowledge, no
 published work provides an empirically validated end-to-end narration pipeline
 with freshest-frame queueing, single-concurrency enforcement, and a multi-model cascade
 achieving below 1\,s across real mobile network conditions.
 
-\item \textbf{Privacy architecture is absent in assistive streaming feeds.}
+\item \textbf{In the absence of privacy architecture, assistive streaming feeds remain exposed.}
 Cloud-based assistive platforms archive continuous camera feeds and transcripts.
 Neither WCAG 2.2~\cite{w3c2023wcag} nor any reviewed system specifies or validates
 an ephemeral, zero-persistence processing model for assistive AI video streams.
@@ -644,20 +626,20 @@ coverage to over 95\% of India's linguistically diverse population. Each languag
 requires dedicated multi-script token trees for native script, Romanized
 transliteration, and code-mixed colloquial speech.
 
-\item \textbf{AI-Powered AAC Symbol Boards.} Integrating predictive AAC symbol boards
-into the mobile application will benefit non-verbal users who rely on symbol selection
-rather than voice for communication. Predicting the conversational context can
-significantly lower the cognitive cost of navigating symbol boards.
+\item \textbf{Symbol Boards with the help of AI.} Combining predictive AAC symbol boards
+into the mobile application will be helpful for non-verbal users who rely on symbol
+selection rather than voice for communication. Predicting the conversational context
+can be very effective in reducing the mental effort involved in navigating symbol boards.
 
 \item \textbf{Differential Privacy through Visual Anonymization.} Blurring faces and
-anonymizing license plates on-device prior to cloud transmission will offer formal
-differential privacy assurances for bystanders who appear incidentally in the video
-stream during assistive navigation sessions.
+anonymizing license plates on-device before they are sent to the cloud will provide
+formal differential privacy guarantees for bystanders who may appear incidentally in
+the video stream during assistive navigation sessions.
 
-\item \textbf{Longitudinal Field Studies.} Controlled laboratory evaluations must be
-supplemented by longitudinal deployment studies with genuine disability communities
-across naturalistic environments---offices, markets, public transport---to expose
-failure modes and usability barriers invisible under laboratory conditions.
+\item \textbf{Longitudinal Field Studies.} Controlled laboratory assessments are to be
+supplemented by longitudinal deployment studies with real disability communities
+in naturalistic settings---offices, markets, public transport---to expose
+failure modes and usability barriers not obvious under laboratory conditions.
 
 \end{enumerate}
 
@@ -667,9 +649,9 @@ failure modes and usability barriers invisible under laboratory conditions.
 \backmatter
 
 \bmhead{Acknowledgements}
-The authors thank the Department of Computer Science and Engineering, VNR Vignana
-Jyothi Institute of Engineering and Technology (VNR VJIET), Hyderabad, for
-institutional support. The authors also acknowledge the open-source AI and
+The authors would like to thank the Department of Computer Science and
+Engineering, VNR Vignana Jyothi Institute of Engineering and Technology (VNR VJIET),
+Hyderabad, for institutional support. The authors also acknowledge the open-source AI and
 accessibility research community whose foundational work enabled this study.
 
 \section*{Declarations}
