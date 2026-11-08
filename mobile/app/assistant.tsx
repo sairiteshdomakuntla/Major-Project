@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useConversation } from '../src/assistant/useConversation';
 import type { ChatMessage } from '../src/assistant/types';
 import { languageLabel } from '../src/profile/options';
+import { Icon } from '../src/components/Icon';
 
 const MAX_INPUT_CHARS = 4000;
 
@@ -35,9 +36,9 @@ function MessageBubble({
     return (
       <View
         accessibilityLabel={`You said: ${message.text}`}
-        className="max-w-[85%] self-end rounded-2xl rounded-br-md bg-sky-400 px-4 py-3"
+        className="max-w-[85%] self-end rounded-2xl rounded-br-md bg-[#0F766E] px-4 py-3"
       >
-        <Text className="text-base leading-6 text-slate-900">{message.text}</Text>
+        <Text className="text-base leading-6 text-white">{message.text}</Text>
       </View>
     );
   }
@@ -46,27 +47,22 @@ function MessageBubble({
     return (
       <View
         accessibilityLabel={`Assistant error: ${message.error ?? 'Request failed'}`}
-        className="max-w-[85%] gap-2 self-start rounded-2xl rounded-bl-md border-2 border-red-400 bg-slate-800 px-4 py-3"
+        className="max-w-[85%] gap-2 self-start rounded-2xl rounded-bl-md border-2 border-[#DC2626] bg-white px-4 py-3"
       >
         <View className="flex-row items-center gap-2">
-          <Text
-            importantForAccessibility="no"
-            className="text-base font-bold text-red-400"
-          >
-            !
-          </Text>
-          <Text className="text-base font-semibold text-slate-50">
+          <Icon name="error-circle" size={18} color="#DC2626" />
+          <Text className="text-base font-semibold text-[#991B1B]">
             Couldn&apos;t reply
           </Text>
         </View>
-        <Text className="text-sm leading-5 text-slate-300">{message.error}</Text>
+        <Text className="text-sm leading-5 text-[#6B7280]">{message.error}</Text>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Retry sending your message"
           onPress={onRetry}
-          className="min-h-[48px] items-center justify-center rounded-xl bg-sky-400 px-4 active:opacity-80"
+          className="min-h-[48px] items-center justify-center rounded-xl bg-[#0F766E] px-4 active:opacity-80"
         >
-          <Text className="text-sm font-bold text-slate-900">Retry</Text>
+          <Text className="text-sm font-bold text-white">Retry</Text>
         </Pressable>
       </View>
     );
@@ -75,9 +71,9 @@ function MessageBubble({
   return (
     <View
       accessibilityLabel={`Assistant: ${message.text}`}
-      className="max-w-[85%] self-start rounded-2xl rounded-bl-md bg-slate-800 px-4 py-3"
+      className="max-w-[85%] self-start rounded-2xl rounded-bl-md border border-[#E5E7EB] bg-white px-4 py-3"
     >
-      <Text className="text-base leading-6 text-slate-50">{message.text}</Text>
+      <Text className="text-base leading-6 text-[#111827]">{message.text}</Text>
     </View>
   );
 }
@@ -96,27 +92,27 @@ export default function AssistantScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-900">
-      <StatusBar style="light" />
+    <SafeAreaView className="flex-1 bg-[#F8FAFC]">
+      <StatusBar style="dark" />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
       >
         {/* Header */}
-        <View className="flex-row items-center gap-2 border-b border-slate-800 px-4 py-2">
+        <View className="flex-row items-center gap-2 border-b border-[#CCFBF1] bg-[#F0FDFA] px-4 py-2">
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Go back to home"
             onPress={() => router.back()}
             className="min-h-[48px] min-w-[48px] items-center justify-center rounded-xl active:opacity-80"
           >
-            <Text className="text-2xl font-bold text-slate-100">‹</Text>
+            <Icon name="arrow-left" size={20} color="#111827" />
           </Pressable>
           <View className="flex-1 gap-0.5">
-            <Text accessibilityRole="header" className="text-lg font-bold text-slate-50">
+            <Text accessibilityRole="header" className="text-lg font-bold text-[#111827]">
               Assistant
             </Text>
-            <Text className="text-xs text-slate-400">
+            <Text className="text-xs text-[#6B7280]">
               {languageLabel(language)}
             </Text>
           </View>
@@ -126,7 +122,7 @@ export default function AssistantScreen() {
             onPress={newConversation}
             className="min-h-[48px] items-center justify-center rounded-xl px-3 active:opacity-80"
           >
-            <Text className="text-sm font-bold text-sky-400">New chat</Text>
+            <Text className="text-sm font-bold text-[#115E59]">New chat</Text>
           </Pressable>
         </View>
 
@@ -135,11 +131,11 @@ export default function AssistantScreen() {
           <View className="flex-1 items-center justify-center gap-4 px-6">
             <Text
               accessibilityRole="header"
-              className="text-center text-xl font-bold text-slate-100"
+              className="text-center text-xl font-bold text-[#111827]"
             >
               How can I help?
             </Text>
-            <Text className="text-center text-sm leading-5 text-slate-400">
+            <Text className="text-center text-sm leading-5 text-[#6B7280]">
               Ask anything in {languageLabel(language)}. Try one of these:
             </Text>
             <View className="w-full gap-2">
@@ -149,9 +145,9 @@ export default function AssistantScreen() {
                   accessibilityRole="button"
                   accessibilityLabel={`Ask: ${s}`}
                   onPress={() => send(s)}
-                  className="min-h-[52px] items-center justify-center rounded-2xl border border-slate-700 px-4 active:opacity-80"
+                  className="min-h-[52px] items-center justify-center rounded-[14px] border border-[#E5E7EB] bg-white px-4 active:opacity-80"
                 >
-                  <Text className="text-center text-sm font-medium text-slate-200">
+                  <Text className="text-center text-sm font-medium text-[#111827]">
                     {s}
                   </Text>
                 </Pressable>
@@ -163,7 +159,7 @@ export default function AssistantScreen() {
             data={[...messages].reverse()}
             keyExtractor={(m) => m.id}
             inverted
-            className="flex-1"
+            className="flex-1 bg-[#F8FAFC]"
             contentContainerClassName="gap-3 p-4"
             keyboardShouldPersistTaps="handled"
             ListHeaderComponent={
@@ -171,14 +167,14 @@ export default function AssistantScreen() {
                 <View
                   accessibilityLiveRegion="polite"
                   accessibilityLabel="AgentBridge is thinking"
-                  className="flex-row items-center gap-2 self-start rounded-2xl rounded-bl-md bg-slate-800 px-4 py-3"
+                  className="flex-row items-center gap-2 self-start rounded-2xl rounded-bl-md border border-[#E5E7EB] bg-white px-4 py-3"
                 >
-                  <ActivityIndicator size="small" color="#38BDF8" />
-                  <Text className="text-sm text-slate-300">
+                  <ActivityIndicator size="small" color="#0F766E" />
+                  <Text className="text-sm text-[#6B7280]">
                     AgentBridge is thinking…
                   </Text>
                 </View>
-              ) : null
+              ) : undefined
             }
             renderItem={({ item }) => (
               <MessageBubble message={item} onRetry={retry} />
@@ -187,21 +183,21 @@ export default function AssistantScreen() {
         )}
 
         {/* Composer */}
-        <View className="flex-row items-end gap-2 border-t border-slate-800 p-3">
+        <View className="flex-row items-end gap-2 border-t border-[#E5E7EB] bg-white p-3">
           <TextInput
             accessibilityLabel="Type your message"
             accessibilityHint={`Up to ${MAX_INPUT_CHARS} characters. Sends when you press Send.`}
             value={draft}
             onChangeText={setDraft}
             placeholder="Type your message…"
-            placeholderTextColor="#64748B"
+            placeholderTextColor="#9CA3AF"
             multiline
             maxLength={MAX_INPUT_CHARS}
             returnKeyType="send"
             onSubmitEditing={handleSend}
             blurOnSubmit={false}
             editable={!isSending}
-            className="max-h-32 min-h-[52px] flex-1 rounded-2xl bg-slate-800 px-4 py-3 text-base leading-6 text-slate-50"
+            className="max-h-32 min-h-[52px] flex-1 rounded-[12px] border border-[#D1D5DB] bg-[#F8FAFC] px-4 py-3 text-base leading-6 text-[#111827]"
           />
           <Pressable
             accessibilityRole="button"
@@ -210,17 +206,13 @@ export default function AssistantScreen() {
             disabled={!canSend}
             onPress={handleSend}
             className={`min-h-[52px] min-w-[52px] items-center justify-center rounded-2xl px-4 active:opacity-80 ${
-              canSend ? 'bg-sky-400' : 'bg-slate-700 opacity-60'
+              canSend ? 'bg-[#0F766E]' : 'bg-[#E5E7EB] opacity-60'
             }`}
           >
             {isSending ? (
-              <ActivityIndicator size="small" color="#0F172A" />
+              <ActivityIndicator size="small" color="#FFFFFF" />
             ) : (
-              <Text
-                className={`text-base font-bold ${canSend ? 'text-slate-900' : 'text-slate-500'}`}
-              >
-                ↑
-              </Text>
+              <Icon name="arrow-up" size={20} color="#FFFFFF" />
             )}
           </Pressable>
         </View>

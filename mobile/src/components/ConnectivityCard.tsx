@@ -53,35 +53,35 @@ export function ConnectivityCard() {
 
   const dotClass =
     status === 'connected'
-      ? 'bg-green-400'
+      ? 'bg-[#16A34A]'
       : status === 'failed'
-        ? 'bg-red-400'
-        : 'bg-yellow-400';
+        ? 'bg-[#DC2626]'
+        : 'bg-[#D97706]';
 
   return (
-    <View className="w-full rounded-2xl bg-slate-800 p-4">
+    <View className="w-full rounded-[14px] border border-[#E5E7EB] bg-white p-4">
       <View className="flex-row items-center justify-between">
-        <Text className="text-base font-semibold text-slate-100">
+        <Text className="text-base font-semibold text-[#111827]">
           Backend connection
         </Text>
         <View className="flex-row items-center gap-2">
           <View className={`h-3 w-3 rounded-full ${dotClass}`} />
-          <Text className="text-sm font-medium text-slate-100">{statusLabel}</Text>
+          <Text className="text-sm font-medium text-[#111827]">{statusLabel}</Text>
         </View>
       </View>
 
-      <Text className="mt-2 text-xs text-slate-400" numberOfLines={1}>
+      <Text className="mt-2 text-xs text-[#6B7280]" numberOfLines={1}>
         {API_BASE_URL}/health
       </Text>
 
       {status === 'connected' && lastHealthResponse ? (
-        <Text className="mt-2 rounded-lg bg-slate-900 p-2 text-xs text-green-300">
+        <Text className="mt-2 rounded-lg bg-[#F0FDFA] p-2 text-xs text-[#166534]">
           {lastHealthResponse}
         </Text>
       ) : null}
 
       {status === 'failed' && error ? (
-        <Text className="mt-2 rounded-lg bg-slate-900 p-2 text-xs text-red-300">
+        <Text className="mt-2 rounded-lg bg-[#FEF2F2] p-2 text-xs text-[#991B1B]">
           {error}
         </Text>
       ) : null}
@@ -90,9 +90,9 @@ export function ConnectivityCard() {
         accessibilityRole="button"
         accessibilityLabel="Retry backend connection"
         onPress={() => setAttempt((n) => n + 1)}
-        className="mt-3 items-center rounded-xl bg-sky-400 px-4 py-2 active:opacity-80"
+        className="mt-3 items-center rounded-[12px] bg-[#0F766E] px-4 py-2 active:opacity-80"
       >
-        <Text className="text-sm font-semibold text-slate-900">Retry</Text>
+        <Text className="text-sm font-semibold text-white">Retry</Text>
       </Pressable>
     </View>
   );

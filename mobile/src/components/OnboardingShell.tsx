@@ -34,7 +34,7 @@ export function OnboardingShell({
   const progress = Math.min(1, Math.max(0, step / totalSteps));
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-900">
+    <SafeAreaView className="flex-1 bg-[#F8FAFC]">
       <ScrollView
         className="flex-1"
         contentContainerClassName="gap-5 p-6 pb-10"
@@ -44,7 +44,7 @@ export function OnboardingShell({
         <View className="gap-2">
           <Text
             accessibilityRole="text"
-            className="text-xs font-medium uppercase tracking-widest text-slate-400"
+            className="text-xs font-medium uppercase tracking-widest text-[#6B7280]"
           >
             Step {step} of {totalSteps}
           </Text>
@@ -52,11 +52,11 @@ export function OnboardingShell({
             accessibilityRole="progressbar"
             accessibilityLabel={`Setup progress: step ${step} of ${totalSteps}`}
             accessibilityValue={{ min: 0, max: totalSteps, now: step }}
-            className="h-2 w-full overflow-hidden rounded-full bg-slate-700"
+            className="h-2 w-full overflow-hidden rounded-full bg-[#E5E7EB]"
           >
             <View
               importantForAccessibility="no"
-              className="h-full rounded-full bg-sky-400"
+              className="h-full rounded-full bg-[#0F766E]"
               style={{ width: `${Math.round(progress * 100)}%` }}
             />
           </View>
@@ -66,12 +66,12 @@ export function OnboardingShell({
         <View className="gap-1.5">
           <Text
             accessibilityRole="header"
-            className="text-2xl font-bold text-slate-50"
+            className="text-2xl font-semibold text-[#111827]"
           >
             {title}
           </Text>
           {subtitle ? (
-            <Text className="text-base leading-6 text-slate-400">{subtitle}</Text>
+            <Text className="text-base leading-6 text-[#6B7280]">{subtitle}</Text>
           ) : null}
         </View>
 
@@ -87,12 +87,12 @@ export function OnboardingShell({
             accessibilityState={{ disabled: continueDisabled }}
             disabled={continueDisabled}
             onPress={onContinue}
-            className={`min-h-[52px] items-center justify-center rounded-2xl px-4 active:opacity-80 ${
-              continueDisabled ? 'bg-slate-700 opacity-60' : 'bg-sky-400'
+            className={`min-h-[52px] items-center justify-center rounded-[12px] px-4 active:opacity-80 ${
+              continueDisabled ? 'bg-[#E5E7EB] opacity-50' : 'bg-[#0F766E]'
             }`}
           >
             <Text
-              className={`text-base font-bold ${continueDisabled ? 'text-slate-400' : 'text-slate-900'}`}
+              className={`text-base font-bold ${continueDisabled ? 'text-[#6B7280]' : 'text-white'}`}
             >
               {continueLabel}
             </Text>
@@ -103,9 +103,9 @@ export function OnboardingShell({
               accessibilityRole="button"
               accessibilityLabel="Go back to previous step"
               onPress={onBack}
-              className="min-h-[48px] items-center justify-center rounded-2xl border border-slate-600 px-4 active:opacity-80"
+              className="min-h-[48px] items-center justify-center rounded-[12px] border border-[#D1D5DB] bg-white px-4 active:opacity-80"
             >
-              <Text className="text-base font-semibold text-slate-200">Back</Text>
+              <Text className="text-base font-semibold text-[#111827]">Back</Text>
             </Pressable>
           ) : null}
         </View>

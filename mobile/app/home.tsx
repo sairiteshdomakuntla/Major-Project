@@ -3,6 +3,8 @@ import { router } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ConnectivityCard } from '../src/components/ConnectivityCard';
+import { Icon } from '../src/components/Icon';
+import type { IconName } from '../src/components/Icon';
 import { languageLabel, needTitle } from '../src/profile/options';
 import type { SupportedLanguage } from '../src/profile/types';
 import { useProfileStore } from '../src/profile/store';
@@ -17,18 +19,112 @@ const GREETINGS: Record<SupportedLanguage, { title: string; subtitle: string }> 
   kok: { title: 'नमस्कार',   subtitle: 'तुमचो सुलभ AI सोबतो.' },
 };
 
+/* ── Reusable sub-components ─────────────────────────────────────────── */
+
+function Avatar({ initials }: { initials: string }) {
+  return (
+    <View
+      accessibilityLabel={`Profile: ${initials}`}
+      className="h-11 w-11 items-center justify-center rounded-full bg-[#0F766E]"
+    >
+      <Text className="text-base font-semibold text-white">{initials}</Text>
+    </View>
+  );
+}
+
 function Chip({ label }: { label: string }) {
   return (
     <View
       accessibilityLabel={label}
-      className="rounded-full bg-slate-700 px-3 py-1.5"
+      className="rounded-full bg-[#F0FDFA] border border-[#CCFBF1] px-3 py-1.5"
     >
-      <Text className="text-xs font-semibold text-slate-100">{label}</Text>
+      <Text className="text-xs font-semibold text-[#0F766E]">{label}</Text>
+    </View>
+  );
+}
+
+/** Feature tile for the 2x2 grid. */
+function FeatureTile({
+  icon,
+  title,
+  subtitle,
+  onPress,
+  accessibilityLabel,
+  accessibilityHint,
+  accent = false,
+}: {
+  icon: IconName;
+  title: string;
+  subtitle: string;
+  onPress: () => void;
+  accessibilityLabel: string;
+  accessibilityHint?: string;
+  accent?: boolean;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
+      onPress={onPress}
+      className={`flex-1 gap-3 rounded-[14px] p-4 active:opacity-80 ${
+        accent
+          ? 'bg-[#0F766E]'
+          : 'bg-white border border-[#E5E7EB]'
+      }`}
+    >
+      <View
+        className={`h-10 w-10 items-center justify-center rounded-[12px] ${
+          accent
+            ? 'bg-white/20'
+            : 'bg-[#F0FDFA] border border-[#CCFBF1]'
+        }`}
+      >
+        <Icon name={icon} size={20} color={accent ? '#FFFFFF' : '#0F766E'} />
+      </View>
+      <View className="gap-0.5">
+        <Text
+          className={`text-[14px] font-semibold ${
+            accent ? 'text-white' : 'text-[#111827]'
+          }`}
+          numberOfLines={1}
+        >
+          {title}
+        </Text>
+        <Text
+          className={`text-[12px] leading-4 ${
+            accent ? 'text-white/70' : 'text-[#6B7280]'
+          }`}
+          numberOfLines={2}
+        >
+          {subtitle}
+        </Text>
+      </View>
+    </Pressable>
+  );
+}
+
+/** A single row inside the profile summary. */
+function ProfileRow({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <View className="gap-1.5">
+      <Text className="text-[11px] font-semibold uppercase tracking-widest text-[#6B7280]">
+        {label}
+      </Text>
+      <View className="flex-row flex-wrap gap-1.5">{children}</View>
     </View>
   );
 }
 
 const COMING_NEXT: { title: string; description: string }[] = [];
+
+/* ── Screen ──────────────────────────────────────────────────────────── */
 
 export default function HomeScreen() {
   const needs = useProfileStore((s) => s.needs);
@@ -40,199 +136,164 @@ export default function HomeScreen() {
   const greeting = GREETINGS[language] ?? GREETINGS.en;
   const cap = (v: string) => v.charAt(0).toUpperCase() + v.slice(1);
 
+  // Derive initials from the greeting language for the avatar
+  const langInitial = languageLabel(language).charAt(0).toUpperCase();
+
   return (
-    <SafeAreaView className="flex-1 bg-slate-900">
-      <StatusBar style="light" />
+    <SafeAreaView className="flex-1 bg-[#F8FAFC]">
+      <StatusBar style="dark" />
+
+      {/* ── Header ─────────────────────────────────────────────────── */}
+      <View className="bg-[#F0FDFA] border-b border-[#CCFBF1] px-5 pt-5 pb-5">
+        <View className="flex-row items-center justify-between">
+          <View className="flex-1 gap-0.5">
+            <Text className="text-[13px] font-medium text-[#0F766E]">
+              AgentBridge
+            </Text>
+            <Text
+              accessibilityRole="header"
+              className="text-[24px] font-semibold leading-[30px] text-[#111827]"
+              style={{ letterSpacing: -0.3 }}
+            >
+              {greeting.title}
+            </Text>
+          </View>
+          <Avatar initials={langInitial} />
+        </View>
+        <Text className="mt-1 text-[14px] leading-5 text-[#6B7280]">
+          {greeting.subtitle}
+        </Text>
+      </View>
+
       <ScrollView
         className="flex-1"
-        contentContainerClassName="gap-4 p-6"
+        contentContainerClassName="px-5 pb-8 pt-5 gap-5"
+        showsVerticalScrollIndicator={false}
       >
-        {/* Personalized header */}
-        <View className="mt-2 gap-1">
-          <Text className="text-sm font-medium text-sky-400">AgentBridge</Text>
-          <Text accessibilityRole="header" className="text-3xl font-bold text-slate-50">
-            {greeting.title}
-          </Text>
-          <Text className="text-base text-slate-400">{greeting.subtitle}</Text>
+        {/* ── Feature grid (2x2) ───────────────────────────────────── */}
+        <View className="gap-3">
+          <View className="flex-row gap-3">
+            <FeatureTile
+              icon="message"
+              title="Ask anything"
+              subtitle={`Chat in ${languageLabel(language)}`}
+              onPress={() => router.push('/assistant')}
+              accessibilityLabel="Open the assistant. Ask anything in your preferred language."
+              accessibilityHint="Starts a text conversation with the AI assistant"
+              accent
+            />
+            <FeatureTile
+              icon="eye"
+              title="Vision"
+              subtitle="Describe scenes and read text"
+              onPress={() => router.push('/vision')}
+              accessibilityLabel="Open the vision assistant. Describe scenes and read text with voice or touch."
+              accessibilityHint="Opens the camera-based vision assistant"
+            />
+          </View>
+          <View className="flex-row gap-3">
+            <FeatureTile
+              icon="zap"
+              title="Live narration"
+              subtitle="Real-time AI description"
+              onPress={() => router.push('/live')}
+              accessibilityLabel="Open live narration. Real-time AI description of your camera feed."
+              accessibilityHint="Starts a continuous live camera narration"
+            />
+            <FeatureTile
+              icon="globe"
+              title="Translate"
+              subtitle="Between Indian languages"
+              onPress={() => router.push('/translate')}
+              accessibilityLabel="Open translator. Translate between Indian languages."
+              accessibilityHint="Opens the translation screen"
+            />
+          </View>
         </View>
 
-        {/* Profile summary */}
-        <View className="gap-3 rounded-2xl bg-slate-800 p-4">
+        {/* ── Profile summary ──────────────────────────────────────── */}
+        <View className="gap-3">
           <View className="flex-row items-center justify-between">
             <Text
               accessibilityRole="header"
-              className="text-base font-semibold text-slate-100"
+              className="text-[16px] font-semibold text-[#111827]"
             >
-              Your preferences
+              Your profile
             </Text>
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Edit your accessibility preferences"
               onPress={() => router.push('/onboarding/needs')}
-              className="min-h-[44px] min-w-[44px] items-center justify-center rounded-xl px-3 active:opacity-80"
+              className="min-h-[44px] min-w-[44px] flex-row items-center justify-center gap-1.5 rounded-[10px] active:opacity-80"
             >
-              <Text className="text-sm font-bold text-sky-400">Edit</Text>
+              <Icon name="edit" size={14} color="#115E59" />
+              <Text className="text-[13px] font-semibold text-[#115E59]">
+                Edit
+              </Text>
             </Pressable>
           </View>
 
-          <View className="gap-2">
-            <Text className="text-xs font-semibold uppercase tracking-widest text-slate-500">
-              Language
-            </Text>
-            <View className="flex-row flex-wrap gap-2">
+          <View className="gap-3 rounded-[14px] bg-white border border-[#E5E7EB] p-4">
+            <ProfileRow label="Language">
               <Chip label={languageLabel(language)} />
-            </View>
-          </View>
+            </ProfileRow>
 
-          <View className="gap-2">
-            <Text className="text-xs font-semibold uppercase tracking-widest text-slate-500">
-              Adapted for
-            </Text>
-            <View className="flex-row flex-wrap gap-2">
+            <View className="h-px bg-[#F3F4F6]" />
+
+            <ProfileRow label="Adapted for">
               {needs.length > 0 ? (
                 needs.map((n) => <Chip key={n} label={needTitle(n)} />)
               ) : (
                 <Chip label="General mode" />
               )}
-            </View>
-          </View>
+            </ProfileRow>
 
-          <View className="gap-2">
-            <Text className="text-xs font-semibold uppercase tracking-widest text-slate-500">
-              Interaction
-            </Text>
-            <View className="flex-row flex-wrap gap-2">
+            <View className="h-px bg-[#F3F4F6]" />
+
+            <ProfileRow label="Interaction">
               {inputModes.map((m) => (
                 <Chip key={`in-${m}`} label={`In: ${cap(m)}`} />
               ))}
               {outputModes.map((m) => (
                 <Chip key={`out-${m}`} label={`Out: ${cap(m)}`} />
               ))}
-            </View>
+            </ProfileRow>
           </View>
         </View>
 
-        {/* Live assistant entry */}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Open the assistant. Ask anything in your preferred language."
-          accessibilityHint="Starts a text conversation with the AI assistant"
-          onPress={() => router.push('/assistant')}
-          className="flex-row items-center gap-3 rounded-2xl bg-sky-400 p-4 active:opacity-80"
-        >
-          <View className="flex-1 gap-0.5">
-            <Text className="text-base font-bold text-slate-900">
-              Ask anything
-            </Text>
-            <Text className="text-sm leading-5 text-slate-800">
-              Chat with your assistant in {languageLabel(language)}.
-            </Text>
-          </View>
-          <Text
-            importantForAccessibility="no"
-            className="text-2xl font-bold text-slate-900"
-          >
-            ›
-          </Text>
-        </Pressable>
-
-        {/* Future foundation — clearly non-interactive previews */}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Open the vision assistant. Describe scenes and read text with voice or touch."
-          accessibilityHint="Opens the camera-based vision assistant"
-          onPress={() => router.push('/vision')}
-          className="flex-row items-center gap-3 rounded-2xl bg-slate-800 p-4 active:opacity-80"
-        >
-          <View className="flex-1 gap-0.5">
-            <Text className="text-base font-bold text-slate-50">
-              Understand images
-            </Text>
-            <Text className="text-sm leading-5 text-slate-400">
-              Describe scenes and read text, with voice guidance.
-            </Text>
-          </View>
-          <Text
-            importantForAccessibility="no"
-            className="text-2xl font-bold text-sky-400"
-          >
-            ›
-          </Text>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Open live narration. Real-time AI description of your camera feed."
-          accessibilityHint="Starts a continuous live camera narration"
-          onPress={() => router.push('/live')}
-          className="flex-row items-center gap-3 rounded-2xl bg-emerald-600 p-4 active:opacity-80"
-        >
-          <View className="flex-1 gap-0.5">
-            <Text className="text-base font-bold text-white">
-              Live narration
-            </Text>
-            <Text className="text-sm leading-5 text-emerald-100">
-              Real-time AI description of your surroundings.
-            </Text>
-          </View>
-          <Text
-            importantForAccessibility="no"
-            className="text-2xl font-bold text-white"
-          >
-            ›
-          </Text>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Open translator. Translate between Indian languages."
-          accessibilityHint="Opens the translation screen"
-          onPress={() => router.push('/translate')}
-          className="flex-row items-center gap-3 rounded-2xl bg-violet-600 p-4 active:opacity-80"
-        >
-          <View className="flex-1 gap-0.5">
-            <Text className="text-base font-bold text-white">
-              Translate
-            </Text>
-            <Text className="text-sm leading-5 text-violet-100">
-              Move between Indian languages with ease.
-            </Text>
-          </View>
-          <Text
-            importantForAccessibility="no"
-            className="text-2xl font-bold text-white"
-          >
-            ›
-          </Text>
-        </Pressable>
+        {/* ── Coming next (if any) ─────────────────────────────────── */}
         {COMING_NEXT.length > 0 && (
-          <View className="gap-3 rounded-2xl bg-slate-800 p-4">
+          <View className="gap-3">
             <Text
               accessibilityRole="header"
-              className="text-base font-semibold text-slate-100"
+              className="text-[16px] font-semibold text-[#111827]"
             >
               Coming next
             </Text>
-            <View className="gap-3">
-              {COMING_NEXT.map((item) => (
-                <View
-                  key={item.title}
-                  accessibilityLabel={`${item.title}. ${item.description} Coming soon, not available yet.`}
-                  className="flex-row items-center gap-3 rounded-xl bg-slate-800/60"
-                >
-                  <View className="flex-1 gap-0.5">
-                    <Text className="text-sm font-semibold text-slate-200">
-                      {item.title}
-                    </Text>
-                    <Text className="text-xs leading-4 text-slate-500">
-                      {item.description}
-                    </Text>
-                  </View>
+            <View className="gap-2 rounded-[14px] bg-white border border-[#E5E7EB] p-4">
+              {COMING_NEXT.map((item, i) => (
+                <View key={item.title}>
+                  {i > 0 && <View className="my-2 h-px bg-[#F3F4F6]" />}
                   <View
-                    importantForAccessibility="no"
-                    className="rounded-full border border-slate-600 px-2.5 py-1"
+                    accessibilityLabel={`${item.title}. ${item.description} Coming soon, not available yet.`}
+                    className="flex-row items-center gap-3"
                   >
-                    <Text className="text-[11px] font-semibold text-slate-400">
-                      Soon
-                    </Text>
+                    <View className="flex-1 gap-0.5">
+                      <Text className="text-[14px] font-semibold text-[#111827]">
+                        {item.title}
+                      </Text>
+                      <Text className="text-[12px] leading-4 text-[#6B7280]">
+                        {item.description}
+                      </Text>
+                    </View>
+                    <View
+                      importantForAccessibility="no"
+                      className="rounded-full border border-[#E5E7EB] px-2.5 py-1"
+                    >
+                      <Text className="text-[11px] font-semibold text-[#6B7280]">
+                        Soon
+                      </Text>
+                    </View>
                   </View>
                 </View>
               ))}
@@ -240,10 +301,18 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* Existing backend connectivity — preserved */}
-        <ConnectivityCard />
+        {/* ── Connectivity ─────────────────────────────────────────── */}
+        <View className="gap-3">
+          <Text
+            accessibilityRole="header"
+            className="text-[16px] font-semibold text-[#111827]"
+          >
+            System
+          </Text>
+          <ConnectivityCard />
+        </View>
 
-        {/* Development-only reset */}
+        {/* ── Development-only reset ───────────────────────────────── */}
         {__DEV__ ? (
           <Pressable
             accessibilityRole="button"
@@ -252,9 +321,9 @@ export default function HomeScreen() {
               resetOnboarding();
               router.replace('/onboarding/welcome');
             }}
-            className="min-h-[48px] items-center justify-center rounded-2xl border border-slate-700 px-4 active:opacity-80"
+            className="min-h-[48px] items-center justify-center rounded-[12px] border border-[#D1D5DB] px-4 active:opacity-80"
           >
-            <Text className="text-sm font-semibold text-slate-400">
+            <Text className="text-[13px] font-medium text-[#6B7280]">
               Reset onboarding (dev)
             </Text>
           </Pressable>

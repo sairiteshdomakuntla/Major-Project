@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Icon } from '../src/components/Icon';
 import { languageLabel } from '../src/profile/options';
 import type { LiveNarration, LiveStatus } from '../src/vision/useLiveSession';
 import { useLiveSession } from '../src/vision/useLiveSession';
@@ -34,16 +35,21 @@ function NarrationBubble({ item }: { item: LiveNarration }) {
   const ts = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   return (
     <View
-      accessibilityLabel={`Narration: ${item.text}`}
-      className="gap-1 rounded-2xl bg-slate-800/90 px-4 py-3"
+      accessibilityLabel={`${item.urgent ? 'Hazard warning' : 'Narration'}: ${item.text}`}
+      className={`gap-1 rounded-[14px] border px-4 py-3 ${
+        item.urgent ? 'border-[#DC2626] bg-[#FEF2F2]' : 'border-[#E5E7EB] bg-white'
+      }`}
     >
       <View className="flex-row items-center gap-2">
-        <Text className="text-xs font-medium text-sky-400">{ts}</Text>
+        {item.urgent && (
+          <Text className="text-xs font-bold uppercase text-[#DC2626]">Hazard</Text>
+        )}
+        <Text className="text-xs font-medium text-[#0F766E]">{ts}</Text>
         {item.latencyMs !== undefined && (
-          <Text className="text-xs text-slate-500">{item.latencyMs}ms</Text>
+          <Text className="text-xs text-[#6B7280]">{item.latencyMs}ms</Text>
         )}
       </View>
-      <Text className="text-base leading-6 text-slate-50">{item.text}</Text>
+      <Text className="text-base leading-6 text-[#111827]">{item.text}</Text>
     </View>
   );
 }
@@ -71,13 +77,22 @@ export default function LiveScreen() {
       try {
         const photo = await cameraRef.current?.takePictureAsync({
           base64: true,
-          quality: 0.2,
+          quality: 0.1,
           imageType: 'jpg',
           exif: false,
           skipProcessing: true,
+          shutterSound: false,
         });
         const base64 = photo?.base64;
-        return base64 && base64.length > 0 ? base64 : null;
+        if (!base64 || base64.length === 0) return null;
+
+        // Guard: drop frames larger than ~4 MB base64 to stay within WS limits
+        if (base64.length > 4 * 1024 * 1024) {
+          console.warn(`[live] Frame too large (${(base64.length / 1024).toFixed(0)} KB), dropping`);
+          return null;
+        }
+
+        return base64;
       } catch {
         return null;
       }
@@ -106,15 +121,15 @@ export default function LiveScreen() {
   const showPauseResume = isRunning || isPaused;
 
   // Connection mode indicator
-  const modeLabel = mode === 'websocket' ? '⚡ Real-time' : '🔄 Polling';
-  const modeColor = mode === 'websocket' ? 'text-emerald-400' : 'text-amber-400';
+  const modeLabel = mode === 'websocket' ? 'Real-time' : 'Polling';
+  const modeColor = mode === 'websocket' ? 'text-[#16A34A]' : 'text-[#D97706]';
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-900">
-      <StatusBar style="light" />
+    <SafeAreaView className="flex-1 bg-[#F8FAFC]">
+      <StatusBar style="dark" />
 
       {/* ─── Header ──────────────────────────────────────────────── */}
-      <View className="flex-row items-center gap-2 border-b border-slate-800 px-4 py-2">
+      <View className="flex-row items-center gap-2 border-b border-[#CCFBF1] bg-[#F0FDFA] px-4 py-2">
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Go back to home"
@@ -124,14 +139,14 @@ export default function LiveScreen() {
           }}
           className="min-h-[48px] min-w-[48px] items-center justify-center rounded-xl active:opacity-80"
         >
-          <Text className="text-2xl font-bold text-slate-100">‹</Text>
+          <Icon name="arrow-left" size={20} color="#111827" />
         </Pressable>
         <View className="flex-1 gap-0.5">
-          <Text accessibilityRole="header" className="text-lg font-bold text-slate-50">
+          <Text accessibilityRole="header" className="text-lg font-bold text-[#111827]">
             Live narration
           </Text>
           <View className="flex-row items-center gap-2">
-            <Text className="text-xs text-slate-400">
+            <Text className="text-xs text-[#6B7280]">
               {languageLabel(language)} · {frameCount} frames
             </Text>
             {isRunning && (
@@ -148,7 +163,7 @@ export default function LiveScreen() {
             onPress={session.stop}
             className="min-h-[48px] items-center justify-center rounded-xl px-3 active:opacity-80"
           >
-            <Text className="text-sm font-bold text-red-400">Stop</Text>
+            <Text className="text-sm font-bold text-[#DC2626]">Stop</Text>
           </Pressable>
         )}
       </View>
@@ -157,18 +172,18 @@ export default function LiveScreen() {
       <View
         accessibilityLiveRegion="polite"
         accessibilityLabel={`Status: ${statusText}`}
-        className="flex-row items-center gap-2 bg-slate-800 px-4 py-2.5"
+        className="flex-row items-center gap-2 border-b border-[#CCFBF1] bg-[#F0FDFA] px-4 py-2.5"
       >
         {(isRunning || status === 'connecting' || status === 'reconnecting') && (
-          <ActivityIndicator size="small" color="#38BDF8" />
+          <ActivityIndicator size="small" color="#0F766E" />
         )}
         {isRunning && (
-          <View className="h-2.5 w-2.5 rounded-full bg-green-400" />
+          <View className="h-2.5 w-2.5 rounded-full bg-[#16A34A]" />
         )}
         {status === 'reconnecting' && (
-          <View className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+          <View className="h-2.5 w-2.5 rounded-full bg-[#D97706]" />
         )}
-        <Text className="flex-1 text-sm font-medium text-slate-100">
+        <Text className="flex-1 text-sm font-medium text-[#111827]">
           {statusText}
         </Text>
       </View>
@@ -177,7 +192,7 @@ export default function LiveScreen() {
       <ScrollView className="flex-1" contentContainerClassName="gap-4 p-4">
         {/* Camera view */}
         {cameraPermission?.granted ? (
-          <View className="overflow-hidden rounded-2xl bg-black">
+          <View className="overflow-hidden rounded-[14px] border border-[#E5E7EB] bg-black">
             <CameraView
               ref={cameraRef}
               facing="back"
@@ -187,10 +202,14 @@ export default function LiveScreen() {
             />
             {/* Overlay showing latest narration text on top of camera */}
             {narrations.length > 0 && isRunning && (
-              <View className="absolute bottom-0 left-0 right-0 bg-black/70 px-4 py-3">
+              <View
+                className={`absolute bottom-0 left-0 right-0 px-4 py-3 ${
+                  narrations[0].urgent ? 'bg-[#DC2626]/90' : 'bg-black/70'
+                }`}
+              >
                 <Text
                   accessibilityLiveRegion="assertive"
-                  className="text-sm leading-5 text-white"
+                  className={`text-sm leading-5 text-white ${narrations[0].urgent ? 'font-bold' : ''}`}
                   numberOfLines={3}
                 >
                   {narrations[0].text}
@@ -201,12 +220,12 @@ export default function LiveScreen() {
         ) : (
           <View
             accessibilityLabel="Camera permission needed"
-            className="gap-3 rounded-2xl bg-slate-800 p-4"
+            className="gap-3 rounded-[14px] border border-[#E5E7EB] bg-white p-4"
           >
-            <Text className="text-base font-semibold text-slate-50">
+            <Text className="text-base font-semibold text-[#111827]">
               Camera access is off
             </Text>
-            <Text className="text-sm leading-5 text-slate-400">
+            <Text className="text-sm leading-5 text-[#6B7280]">
               AgentBridge needs the camera to narrate your surroundings in real
               time. Frames are analyzed in memory and never stored.
             </Text>
@@ -214,9 +233,9 @@ export default function LiveScreen() {
               accessibilityRole="button"
               accessibilityLabel="Allow camera access"
               onPress={() => void requestCameraPermission()}
-              className="min-h-[52px] items-center justify-center rounded-2xl bg-sky-400 px-4 active:opacity-80"
+              className="min-h-[52px] items-center justify-center rounded-[12px] bg-[#0F766E] px-4 active:opacity-80"
             >
-              <Text className="text-base font-bold text-slate-900">
+              <Text className="text-base font-bold text-white">
                 Allow camera
               </Text>
             </Pressable>
@@ -229,9 +248,10 @@ export default function LiveScreen() {
             accessibilityRole="button"
             accessibilityLabel="Start live narration"
             onPress={session.start}
-            className="min-h-[72px] items-center justify-center rounded-2xl bg-green-500 px-6 active:opacity-80"
+            className="min-h-[72px] flex-row items-center justify-center gap-3 rounded-[12px] bg-[#0F766E] px-6 active:opacity-80"
           >
-            <Text className="text-lg font-bold text-white">▶  Start live narration</Text>
+            <Icon name="play" size={22} color="#FFFFFF" />
+            <Text className="text-lg font-bold text-white">Start live narration</Text>
           </Pressable>
         )}
 
@@ -242,27 +262,30 @@ export default function LiveScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Pause narration"
                 onPress={session.pause}
-                className="min-h-[64px] flex-1 items-center justify-center rounded-2xl bg-amber-500 px-4 active:opacity-80"
+                className="min-h-[64px] flex-1 flex-row items-center justify-center gap-2 rounded-[12px] bg-[#D97706] px-4 active:opacity-80"
               >
-                <Text className="text-base font-bold text-white">⏸  Pause</Text>
+                <Icon name="pause" size={20} color="#FFFFFF" />
+                <Text className="text-base font-bold text-white">Pause</Text>
               </Pressable>
             ) : (
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Resume narration"
                 onPress={session.resume}
-                className="min-h-[64px] flex-1 items-center justify-center rounded-2xl bg-green-500 px-4 active:opacity-80"
+                className="min-h-[64px] flex-1 flex-row items-center justify-center gap-2 rounded-[12px] bg-[#0F766E] px-4 active:opacity-80"
               >
-                <Text className="text-base font-bold text-white">▶  Resume</Text>
+                <Icon name="play" size={20} color="#FFFFFF" />
+                <Text className="text-base font-bold text-white">Resume</Text>
               </Pressable>
             )}
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Stop live narration"
               onPress={session.stop}
-              className="min-h-[64px] flex-1 items-center justify-center rounded-2xl bg-red-500 px-4 active:opacity-80"
+              className="min-h-[64px] flex-1 flex-row items-center justify-center gap-2 rounded-[12px] bg-[#DC2626] px-4 active:opacity-80"
             >
-              <Text className="text-base font-bold text-white">◼  Stop</Text>
+              <Icon name="stop" size={20} color="#FFFFFF" />
+              <Text className="text-base font-bold text-white">Stop</Text>
             </Pressable>
           </View>
         )}
@@ -270,7 +293,7 @@ export default function LiveScreen() {
         {/* ─── Narration log ─────────────────────────────────────── */}
         {narrations.length > 0 && (
           <View className="gap-3">
-            <Text className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+            <Text className="text-xs font-semibold uppercase tracking-widest text-[#6B7280]">
               Narration history
             </Text>
             {narrations.map((n) => (
@@ -279,7 +302,7 @@ export default function LiveScreen() {
           </View>
         )}
 
-        <Text className="text-xs leading-4 text-slate-500">
+        <Text className="text-xs leading-4 text-[#6B7280]">
           Live descriptions may not be fully accurate — verify important details
           another way. Frames are analyzed in memory and never stored.
         </Text>

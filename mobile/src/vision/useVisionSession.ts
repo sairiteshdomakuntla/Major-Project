@@ -75,7 +75,16 @@ export function useVisionSession() {
   const language = useProfileStore((s) => s.language);
   const needs = useProfileStore((s) => s.needs);
   const outputModes = useProfileStore((s) => s.outputModes);
-  const voiceOutput = outputModes.includes('speech');
+  const inputModes = useProfileStore((s) => s.inputModes);
+  // Voice-first screen: speak if the user asked for speech, relies on it
+  // (visual need), or prefers voice input. Text-only users stay silent until
+  // they use the Listen button (see usedVoiceRef).
+  const voiceOutput =
+    outputModes.includes('speech') ||
+    needs.includes('visual') ||
+    inputModes.includes('voice');
+  // Anyone who speaks a command expects a spoken answer, whatever the profile says.
+  const usedVoiceRef = useRef(false);
 
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [messages, setMessages] = useState<VisionMessage[]>([]);
@@ -105,7 +114,7 @@ export function useVisionSession() {
 
   const say = useCallback(
     async (text: string) => {
-      if (!voiceOutput) return;
+      if (!voiceOutput && !usedVoiceRef.current) return;
       if (!mountedRef.current) return;
       setStatus('speaking');
       await speakText(text, language, {
@@ -309,6 +318,10 @@ export function useVisionSession() {
     setNotice('Listening… speak now.');
     try {
       const transcript = await listenOnce({ language });
+      usedVoiceRef.current = true;
+      // Give the recognizer a moment to release the microphone/audio focus,
+      // otherwise the first spoken reply can be swallowed.
+      await new Promise((resolve) => setTimeout(resolve, 300));
       const action = matchVoiceCommand(transcript);
       setNotice(`Heard: “${transcript}”`);
       switch (action.kind) {
@@ -343,6 +356,9 @@ export function useVisionSession() {
         err instanceof SttError ? sttMessage(err.kind) : sttMessage('unknown');
       setNotice(message);
       setStatus('error');
+      // Errors from the listener are always spoken — the user is relying on audio.
+      usedVoiceRef.current = true;
+      await new Promise((resolve) => setTimeout(resolve, 300));
       void say(message);
     } finally {
       if (mountedRef.current) {
@@ -366,7 +382,8 @@ export function useVisionSession() {
   return {
     imageBase64,
     messages: messages.filter((m) => !(m.role === 'user' && m.status === 'sent' && m.text.length === 0)),
-    status,    notice,
+    status,
+    notice,
     listening,
     sttSupported,
     hasPhoto: imageBase64 !== null,

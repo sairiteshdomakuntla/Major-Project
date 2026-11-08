@@ -46,18 +46,18 @@ export default function ReviewScreen() {
       <View
         accessibilityRole="list"
         accessibilityLabel="Your accessibility profile summary"
-        className="gap-px overflow-hidden rounded-2xl bg-slate-700"
+        className="gap-px overflow-hidden rounded-[14px] bg-[#E5E7EB]"
       >
         {rows.map((row) => (
           <View
             key={row.label}
             accessibilityLabel={`${row.label}: ${row.value}`}
-            className="gap-0.5 bg-slate-800 p-4"
+            className="gap-0.5 bg-white p-4"
           >
-            <Text className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+            <Text className="text-xs font-semibold uppercase tracking-widest text-[#6B7280]">
               {row.label}
             </Text>
-            <Text className="text-base font-medium text-slate-50">
+            <Text className="text-base font-medium text-[#111827]">
               {row.value}
             </Text>
           </View>

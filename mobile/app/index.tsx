@@ -19,14 +19,14 @@ export default function GateScreen() {
   }, [hydrated, completed]);
 
   return (
-    <SafeAreaView className="flex-1 items-center justify-center bg-slate-900">
+    <SafeAreaView className="flex-1 items-center justify-center bg-[#F8FAFC]">
       <View className="items-center gap-3">
         <ActivityIndicator
           size="large"
-          color="#38BDF8"
+          color="#0F766E"
           accessibilityLabel="Loading your profile"
         />
-        <Text className="text-base text-slate-400">AgentBridge</Text>
+        <Text className="text-base text-[#6B7280]">AgentBridge</Text>
       </View>
     </SafeAreaView>
   );

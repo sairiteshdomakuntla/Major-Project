@@ -35,7 +35,7 @@ export default function NeedsScreen() {
           />
         ))}
       </View>
-      <Text className="text-sm leading-5 text-slate-500">
+      <Text className="text-sm leading-5 text-[#6B7280]">
         Your choices stay on this device and only shape how the app presents
         information.
       </Text>
