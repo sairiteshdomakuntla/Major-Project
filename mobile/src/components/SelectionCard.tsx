@@ -1,4 +1,5 @@
 import { Pressable, Text, View } from 'react-native';
+import { Icon } from './Icon';
 
 interface SelectionCardProps {
   title: string;
@@ -45,8 +46,8 @@ export function SelectionCard({
       disabled={disabled}
       onPress={onPress}
       className={[
-        'min-h-[60px] w-full flex-row items-center gap-3 rounded-2xl border-2 p-4 active:opacity-80',
-        selected ? 'border-sky-400 bg-slate-800' : 'border-slate-700 bg-slate-800/60',
+        'min-h-[60px] w-full flex-row items-center gap-3 rounded-[14px] p-4 active:opacity-80',
+        selected ? 'border-2 border-[#0F766E] bg-[#F0FDFA]' : 'border border-[#E5E7EB] bg-white',
         disabled ? 'opacity-50' : '',
       ].join(' ')}
     >
@@ -55,28 +56,28 @@ export function SelectionCard({
         importantForAccessibility="no"
         className={[
           'h-7 w-7 items-center justify-center rounded-full border-2',
-          selected ? 'border-sky-400 bg-sky-400' : 'border-slate-500',
+          selected ? 'border-[#0F766E] bg-[#0F766E]' : 'border-[#D1D5DB]',
         ].join(' ')}
       >
         {selected ? (
-          <Text className="text-base font-bold text-slate-900">✓</Text>
+          <Icon name="check" size={16} color="#FFFFFF" />
         ) : null}
       </View>
 
       <View className="flex-1 gap-0.5">
         <Text
-          className={`text-base ${selected ? 'font-bold text-slate-50' : 'font-medium text-slate-100'}`}
+          className={`text-base ${selected ? 'font-semibold text-[#111827]' : 'font-medium text-[#111827]'}`}
         >
           {title}
         </Text>
         {description ? (
-          <Text className="text-sm text-slate-400">{description}</Text>
+          <Text className="text-sm text-[#6B7280]">{description}</Text>
         ) : null}
       </View>
 
       {badge ? (
-        <View className="rounded-full bg-slate-700 px-3 py-1">
-          <Text className="text-xs font-medium text-slate-200">{badge}</Text>
+        <View className="rounded-full border border-[#CCFBF1] bg-[#F0FDFA] px-3 py-1">
+          <Text className="text-xs font-medium text-[#0F766E]">{badge}</Text>
         </View>
       ) : null}
     </Pressable>

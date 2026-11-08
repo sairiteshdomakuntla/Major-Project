@@ -272,7 +272,7 @@ export function LensSelectionBox({
         ]}
       >
         <View style={styles.hintPill}>
-          <Text style={styles.hintText}>✋ Drag corners to fit text</Text>
+          <Text style={styles.hintText}>Drag corners to fit text</Text>
           {onReset && (
             <Pressable
               accessibilityRole="button"
@@ -280,7 +280,7 @@ export function LensSelectionBox({
               onPress={onReset}
               style={styles.resetBtn}
             >
-              <Text style={styles.resetBtnText}>↺ Reset</Text>
+              <Text style={styles.resetBtnText}>Reset</Text>
             </Pressable>
           )}
         </View>
@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
   boxFrame: {
     position: 'absolute',
     borderWidth: 1.5,
-    borderColor: '#38BDF8',
+    borderColor: '#0F766E',
     backgroundColor: 'transparent',
     borderRadius: 8,
   },
@@ -307,7 +307,7 @@ const styles = StyleSheet.create({
     right: 0,
     top: '50%',
     height: 1,
-    backgroundColor: 'rgba(56, 189, 248, 0.2)',
+    backgroundColor: 'rgba(15, 118, 110, 0.2)',
   },
   gridV: {
     position: 'absolute',
@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: '50%',
     width: 1,
-    backgroundColor: 'rgba(56, 189, 248, 0.2)',
+    backgroundColor: 'rgba(15, 118, 110, 0.2)',
   },
   corner: {
     position: 'absolute',
@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#FFFFFF',
     borderWidth: 3,
-    borderColor: '#0284C7',
+    borderColor: '#0F766E',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.35,
@@ -396,13 +396,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   resetBtn: {
-    backgroundColor: 'rgba(56, 189, 248, 0.2)',
+    backgroundColor: 'rgba(15, 118, 110, 0.2)',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 10,
   },
   resetBtnText: {
-    color: '#38BDF8',
+    color: '#0F766E',
     fontSize: 11,
     fontWeight: '700',
   },

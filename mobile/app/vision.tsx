@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Icon } from '../src/components/Icon';
 import { languageLabel } from '../src/profile/options';
 import type { VisionMessage } from '../src/vision/types';
 import { useVisionSession } from '../src/vision/useVisionSession';
@@ -31,9 +32,9 @@ function ResultBubble({ message }: { message: VisionMessage }) {
     return (
       <View
         accessibilityLabel={`You asked: ${message.text}`}
-        className="max-w-[85%] self-end rounded-2xl rounded-br-md bg-sky-400 px-4 py-3"
+        className="max-w-[85%] self-end rounded-2xl rounded-br-md bg-[#0F766E] px-4 py-3"
       >
-        <Text className="text-base leading-6 text-slate-900">{message.text}</Text>
+        <Text className="text-base leading-6 text-white">{message.text}</Text>
       </View>
     );
   }
@@ -41,21 +42,21 @@ function ResultBubble({ message }: { message: VisionMessage }) {
     return (
       <View
         accessibilityLabel={`Vision error: ${message.error ?? 'Request failed'}`}
-        className="max-w-[85%] gap-1 self-start rounded-2xl rounded-bl-md border-2 border-red-400 bg-slate-800 px-4 py-3"
+        className="max-w-[85%] gap-1 self-start rounded-2xl rounded-bl-md border-2 border-[#DC2626] bg-white px-4 py-3"
       >
-        <Text className="text-base font-semibold text-slate-50">
+        <Text className="text-base font-semibold text-[#991B1B]">
           Couldn&apos;t analyze
         </Text>
-        <Text className="text-sm leading-5 text-slate-300">{message.error}</Text>
+        <Text className="text-sm leading-5 text-[#6B7280]">{message.error}</Text>
       </View>
     );
   }
   return (
     <View
       accessibilityLabel={`Vision assistant: ${message.text}`}
-      className="max-w-[95%] self-start rounded-2xl rounded-bl-md bg-slate-800 px-4 py-3"
+      className="max-w-[95%] self-start rounded-2xl rounded-bl-md border border-[#E5E7EB] bg-white px-4 py-3"
     >
-      <Text className="text-base leading-6 text-slate-50">{message.text}</Text>
+      <Text className="text-base leading-6 text-[#111827]">{message.text}</Text>
     </View>
   );
 }
@@ -114,10 +115,10 @@ export default function VisionScreen() {
   const statusText = notice ?? STATUS_TEXT[status] ?? 'Ready.';
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-900">
-      <StatusBar style="light" />
+    <SafeAreaView className="flex-1 bg-[#F8FAFC]">
+      <StatusBar style="dark" />
       {/* Header */}
-      <View className="flex-row items-center gap-2 border-b border-slate-800 px-4 py-2">
+      <View className="flex-row items-center gap-2 border-b border-[#CCFBF1] bg-[#F0FDFA] px-4 py-2">
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Go back to home"
@@ -127,13 +128,13 @@ export default function VisionScreen() {
           }}
           className="min-h-[48px] min-w-[48px] items-center justify-center rounded-xl active:opacity-80"
         >
-          <Text className="text-2xl font-bold text-slate-100">‹</Text>
+          <Icon name="arrow-left" size={20} color="#111827" />
         </Pressable>
         <View className="flex-1 gap-0.5">
-          <Text accessibilityRole="header" className="text-lg font-bold text-slate-50">
+          <Text accessibilityRole="header" className="text-lg font-bold text-[#111827]">
             Vision assistant
           </Text>
-          <Text className="text-xs text-slate-400">
+          <Text className="text-xs text-[#6B7280]">
             {languageLabel(language)}
           </Text>
         </View>
@@ -143,7 +144,7 @@ export default function VisionScreen() {
           onPress={session.newPhoto}
           className="min-h-[48px] items-center justify-center rounded-xl px-3 active:opacity-80"
         >
-          <Text className="text-sm font-bold text-sky-400">New photo</Text>
+          <Text className="text-sm font-bold text-[#115E59]">New photo</Text>
         </Pressable>
       </View>
 
@@ -151,12 +152,12 @@ export default function VisionScreen() {
       <View
         accessibilityLiveRegion="polite"
         accessibilityLabel={`Status: ${statusText}`}
-        className="flex-row items-center gap-2 bg-slate-800 px-4 py-2.5"
+        className="flex-row items-center gap-2 border-b border-[#CCFBF1] bg-[#F0FDFA] px-4 py-2.5"
       >
         {(isWorking || listening) && (
-          <ActivityIndicator size="small" color="#38BDF8" />
+          <ActivityIndicator size="small" color="#0F766E" />
         )}
-        <Text className="flex-1 text-sm font-medium text-slate-100">
+        <Text className="flex-1 text-sm font-medium text-[#111827]">
           {statusText}
         </Text>
       </View>
@@ -182,9 +183,9 @@ export default function VisionScreen() {
                 {hasPhoto ? (
                   <View
                     accessibilityLabel="Photo captured. Ask a follow-up below, or take a new photo."
-                    className="rounded-2xl bg-slate-800 p-3"
+                    className="rounded-[14px] border border-[#CCFBF1] bg-[#F0FDFA] p-3"
                   >
-                    <Text className="text-sm text-slate-300">
+                    <Text className="text-sm text-[#111827]">
                       Photo captured. Ask a follow-up below, or take a new
                       photo.
                     </Text>
@@ -194,12 +195,12 @@ export default function VisionScreen() {
             ) : (
               <View
                 accessibilityLabel="Camera permission needed"
-                className="gap-3 rounded-2xl bg-slate-800 p-4"
+                className="gap-3 rounded-[14px] border border-[#E5E7EB] bg-white p-4"
               >
-                <Text className="text-base font-semibold text-slate-50">
+                <Text className="text-base font-semibold text-[#111827]">
                   Camera access is off
                 </Text>
-                <Text className="text-sm leading-5 text-slate-400">
+                <Text className="text-sm leading-5 text-[#6B7280]">
                   AgentBridge needs the camera to describe what is in front of
                   you. Photos are analyzed and never stored.
                 </Text>
@@ -207,9 +208,9 @@ export default function VisionScreen() {
                   accessibilityRole="button"
                   accessibilityLabel="Allow camera access"
                   onPress={() => void requestCameraPermission()}
-                  className="min-h-[52px] items-center justify-center rounded-2xl bg-sky-400 px-4 active:opacity-80"
+                  className="min-h-[52px] items-center justify-center rounded-[12px] bg-[#0F766E] px-4 active:opacity-80"
                 >
-                  <Text className="text-base font-bold text-slate-900">
+                  <Text className="text-base font-bold text-white">
                     Allow camera
                   </Text>
                 </Pressable>
@@ -229,10 +230,10 @@ export default function VisionScreen() {
                 disabled={listening || isWorking}
                 onPress={() => void session.listenForCommand()}
                 className={`min-h-[72px] flex-1 items-center justify-center rounded-2xl px-4 active:opacity-80 ${
-                  listening ? 'bg-green-400' : 'bg-sky-400'
+                  listening ? 'bg-[#16A34A]' : 'bg-[#0F766E]'
                 }`}
               >
-                <Text className="text-base font-bold text-slate-900">
+                <Text className="text-base font-bold text-white">
                   {listening ? 'Listening…' : 'Listen'}
                 </Text>
               </Pressable>
@@ -242,15 +243,15 @@ export default function VisionScreen() {
                 accessibilityState={{ disabled: isWorking }}
                 disabled={isWorking}
                 onPress={() => void session.describeSurroundings()}
-                className="min-h-[72px] flex-1 items-center justify-center rounded-2xl bg-slate-700 px-4 active:opacity-80"
+                className="min-h-[72px] flex-1 items-center justify-center rounded-2xl border border-[#D1D5DB] bg-white px-4 active:opacity-80"
               >
-                <Text className="text-base font-bold text-slate-50">
+                <Text className="text-base font-bold text-[#111827]">
                   Describe
                 </Text>
               </Pressable>
             </View>
             {sttSupported === false ? (
-              <Text className="text-sm leading-5 text-slate-500">
+              <Text className="text-sm leading-5 text-[#6B7280]">
                 Voice input needs the development build — the buttons on this
                 screen do everything voice commands do.
               </Text>
@@ -264,32 +265,32 @@ export default function VisionScreen() {
                 accessibilityState={{ disabled: isWorking }}
                 disabled={isWorking}
                 onPress={() => void session.readText()}
-                className="min-h-[52px] flex-1 items-center justify-center rounded-2xl border border-slate-600 px-3 active:opacity-80"
+                className="min-h-[52px] flex-1 items-center justify-center rounded-2xl border border-[#D1D5DB] bg-white px-3 active:opacity-80"
               >
-                <Text className="text-sm font-bold text-slate-100">Read text</Text>
+                <Text className="text-sm font-bold text-[#111827]">Read text</Text>
               </Pressable>
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Repeat the last spoken result"
                 onPress={session.repeatLast}
-                className="min-h-[52px] flex-1 items-center justify-center rounded-2xl border border-slate-600 px-3 active:opacity-80"
+                className="min-h-[52px] flex-1 items-center justify-center rounded-2xl border border-[#D1D5DB] bg-white px-3 active:opacity-80"
               >
-                <Text className="text-sm font-bold text-slate-100">Repeat</Text>
+                <Text className="text-sm font-bold text-[#111827]">Repeat</Text>
               </Pressable>
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Stop speaking"
                 onPress={session.stopAll}
-                className="min-h-[52px] flex-1 items-center justify-center rounded-2xl border border-slate-600 px-3 active:opacity-80"
+                className="min-h-[52px] flex-1 items-center justify-center rounded-2xl border border-[#D1D5DB] bg-white px-3 active:opacity-80"
               >
-                <Text className="text-sm font-bold text-slate-100">Stop</Text>
+                <Text className="text-sm font-bold text-[#111827]">Stop</Text>
               </Pressable>
             </View>
 
             {/* Find an object */}
             <View className="flex-row items-end gap-2">
               <View className="flex-1 gap-1">
-                <Text className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+                <Text className="text-xs font-semibold uppercase tracking-widest text-[#6B7280]">
                   Find something
                 </Text>
                 <TextInput
@@ -297,7 +298,7 @@ export default function VisionScreen() {
                   value={findTarget}
                   onChangeText={setFindTarget}
                   placeholder="e.g. water bottle"
-                  placeholderTextColor="#64748B"
+                  placeholderTextColor="#9CA3AF"
                   returnKeyType="search"
                   onSubmitEditing={() => {
                     if (findTarget.trim()) {
@@ -305,7 +306,7 @@ export default function VisionScreen() {
                       setFindTarget('');
                     }
                   }}
-                  className="min-h-[52px] rounded-2xl bg-slate-800 px-4 text-base text-slate-50"
+                  className="min-h-[52px] rounded-[12px] border border-[#D1D5DB] bg-[#F8FAFC] px-4 text-base text-[#111827]"
                 />
               </View>
               <Pressable
@@ -319,9 +320,9 @@ export default function VisionScreen() {
                   void session.findObject(findTarget.trim());
                   setFindTarget('');
                 }}
-                className="min-h-[52px] items-center justify-center rounded-2xl bg-sky-400 px-5 active:opacity-80"
+                className="min-h-[52px] items-center justify-center rounded-[12px] bg-[#0F766E] px-5 active:opacity-80"
               >
-                <Text className="text-base font-bold text-slate-900">Find</Text>
+                <Text className="text-base font-bold text-white">Find</Text>
               </Pressable>
             </View>
 
@@ -335,9 +336,9 @@ export default function VisionScreen() {
                   accessibilityRole="button"
                   accessibilityLabel="Retry the last vision request"
                   onPress={session.retry}
-                  className="min-h-[52px] items-center justify-center rounded-2xl bg-sky-400 px-4 active:opacity-80"
+                  className="min-h-[52px] items-center justify-center rounded-[12px] bg-[#0F766E] px-4 active:opacity-80"
                 >
-                  <Text className="text-base font-bold text-slate-900">
+                  <Text className="text-base font-bold text-white">
                     Retry
                   </Text>
                 </Pressable>
@@ -346,7 +347,7 @@ export default function VisionScreen() {
 
             {/* Follow-up about the same photo */}
             <View className="gap-1">
-              <Text className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+              <Text className="text-xs font-semibold uppercase tracking-widest text-[#6B7280]">
                 Ask about this photo
               </Text>
               <View className="flex-row items-end gap-2">
@@ -362,7 +363,7 @@ export default function VisionScreen() {
                   placeholder={
                     hasPhoto ? 'e.g. Is there a chair nearby?' : 'Take a photo first…'
                   }
-                  placeholderTextColor="#64748B"
+                  placeholderTextColor="#9CA3AF"
                   multiline
                   returnKeyType="send"
                   onSubmitEditing={() => {
@@ -371,7 +372,7 @@ export default function VisionScreen() {
                   }}
                   blurOnSubmit={false}
                   editable={!isWorking}
-                  className="max-h-32 min-h-[52px] flex-1 rounded-2xl bg-slate-800 px-4 py-3 text-base text-slate-50"
+                  className="max-h-32 min-h-[52px] flex-1 rounded-[12px] border border-[#D1D5DB] bg-[#F8FAFC] px-4 py-3 text-base text-[#111827]"
                 />
                 <Pressable
                   accessibilityRole="button"
@@ -384,14 +385,14 @@ export default function VisionScreen() {
                     session.askFollowUp(followUp);
                     setFollowUp('');
                   }}
-                  className="min-h-[52px] min-w-[52px] items-center justify-center rounded-2xl bg-sky-400 px-4 active:opacity-80"
+                  className="min-h-[52px] min-w-[52px] items-center justify-center rounded-[12px] bg-[#0F766E] px-4 active:opacity-80"
                 >
-                  <Text className="text-base font-bold text-slate-900">↑</Text>
+                  <Icon name="arrow-up" size={20} color="#FFFFFF" />
                 </Pressable>
               </View>
             </View>
 
-            <Text className="text-xs leading-4 text-slate-500">
+            <Text className="text-xs leading-4 text-[#6B7280]">
               Descriptions may not be fully accurate — verify important details
               another way. Photos are analyzed in memory and never stored.
             </Text>

@@ -35,7 +35,7 @@ export default function InteractionScreen() {
       <View className="gap-3">
         <Text
           accessibilityRole="header"
-          className="text-sm font-semibold uppercase tracking-widest text-slate-400"
+          className="text-sm font-semibold uppercase tracking-widest text-[#6B7280]"
         >
           I want to use
         </Text>
@@ -59,7 +59,7 @@ export default function InteractionScreen() {
       <View className="gap-3">
         <Text
           accessibilityRole="header"
-          className="text-sm font-semibold uppercase tracking-widest text-slate-400"
+          className="text-sm font-semibold uppercase tracking-widest text-[#6B7280]"
         >
           I want responses as
         </Text>
