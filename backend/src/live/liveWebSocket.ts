@@ -66,8 +66,8 @@ interface ClientState {
 const IDLE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 /** Heartbeat ping interval (ms). */
 const HEARTBEAT_INTERVAL_MS = 30_000;
-/** Max payload size for a single frame message. */
-const MAX_FRAME_SIZE = 512 * 1024; // 512 KB
+/** Max payload size for a single frame message (base64 data field). */
+const MAX_FRAME_SIZE = 5 * 1024 * 1024; // 5 MB — phone cameras at low quality still produce large base64
 
 // ---------------------------------------------------------------------------
 // Setup
@@ -77,7 +77,7 @@ export function attachLiveWebSocket(server: Server): WebSocketServer {
   const wss = new WebSocketServer({
     server,
     path: '/api/v1/live',
-    maxPayload: 1024 * 1024, // 1 MB max total message
+    maxPayload: 10 * 1024 * 1024, // 10 MB — must exceed the largest JSON-wrapped base64 frame
   });
 
   // Heartbeat: detect dead connections
