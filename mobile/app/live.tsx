@@ -71,13 +71,21 @@ export default function LiveScreen() {
       try {
         const photo = await cameraRef.current?.takePictureAsync({
           base64: true,
-          quality: 0.2,
+          quality: 0.1,
           imageType: 'jpg',
           exif: false,
           skipProcessing: true,
         });
         const base64 = photo?.base64;
-        return base64 && base64.length > 0 ? base64 : null;
+        if (!base64 || base64.length === 0) return null;
+
+        // Guard: drop frames larger than ~4 MB base64 to stay within WS limits
+        if (base64.length > 4 * 1024 * 1024) {
+          console.warn(`[live] Frame too large (${(base64.length / 1024).toFixed(0)} KB), dropping`);
+          return null;
+        }
+
+        return base64;
       } catch {
         return null;
       }

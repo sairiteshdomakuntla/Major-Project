@@ -52,8 +52,12 @@ export interface LiveNarration {
 // Constants
 // ---------------------------------------------------------------------------
 
-/** Frame capture interval (ms). */
+/** Frame capture interval — fast (ms). */
 const CAPTURE_INTERVAL_MS = 500;
+/** Frame capture interval — slow, when scene is static (ms). */
+const CAPTURE_SLOW_INTERVAL_MS = 2000;
+/** How long without new narrations before slowing frame rate (ms). */
+const NO_NARRATION_SLOWDOWN_MS = 6000;
 /** JPEG quality for captured frames. Lower = smaller payload = faster. */
 const FRAME_QUALITY = 0.2;
 /** Max narrations kept in the UI log. */
@@ -131,6 +135,8 @@ export function useLiveSession() {
   const idCounter = useRef(0);
   const frameIndexRef = useRef(0);
   const lastFrameSentRef = useRef(0);
+  /** Timestamp of last genuinely new narration — drives adaptive frame rate. */
+  const lastNewNarrationRef = useRef(0);
 
   // Fallback-mode refs
   const fallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -281,6 +287,7 @@ export function useLiveSession() {
             latencyMs: typeof msg.ts === 'number' ? Date.now() - msg.ts : undefined,
           };
 
+          lastNewNarrationRef.current = Date.now();
           setNarrations((prev) => [narration, ...prev].slice(0, MAX_NARRATIONS));
           setError(null);
           setStatus('speaking');
@@ -354,34 +361,57 @@ export function useLiveSession() {
     stopCapturing();
     if (!mountedRef.current || !runningRef.current) return;
 
-    captureTimerRef.current = setInterval(async () => {
+    // Use setTimeout chain instead of setInterval so interval can adapt.
+    const tick = async () => {
       if (!mountedRef.current || !runningRef.current) return;
-      if (!capturerRef.current) return;
+      if (!capturerRef.current) {
+        scheduleNext();
+        return;
+      }
 
       const ws = wsRef.current;
-      if (!ws || ws.readyState !== WebSocket.OPEN) return;
+      if (!ws || ws.readyState !== WebSocket.OPEN) {
+        scheduleNext();
+        return;
+      }
 
       try {
         const base64 = await capturerRef.current();
-        if (!base64 || !mountedRef.current || !runningRef.current) return;
+        if (base64 && mountedRef.current && runningRef.current) {
+          frameIndexRef.current++;
+          setFrameCount(frameIndexRef.current);
+          lastFrameSentRef.current = Date.now();
 
-        frameIndexRef.current++;
-        setFrameCount(frameIndexRef.current);
-        lastFrameSentRef.current = Date.now();
-
-        ws.send(JSON.stringify({
-          type: 'frame',
-          data: base64,
-        }));
+          ws.send(JSON.stringify({
+            type: 'frame',
+            data: base64,
+          }));
+        }
       } catch {
         // Camera hiccup — skip this frame
       }
-    }, CAPTURE_INTERVAL_MS);
+
+      scheduleNext();
+    };
+
+    const scheduleNext = () => {
+      if (!mountedRef.current || !runningRef.current) return;
+      // Adaptive: slow down if no new narrations have arrived recently
+      const sinceLastNarration = Date.now() - lastNewNarrationRef.current;
+      const interval =
+        lastNewNarrationRef.current > 0 && sinceLastNarration > NO_NARRATION_SLOWDOWN_MS
+          ? CAPTURE_SLOW_INTERVAL_MS
+          : CAPTURE_INTERVAL_MS;
+      captureTimerRef.current = setTimeout(tick, interval);
+    };
+
+    // Kick off the first tick
+    captureTimerRef.current = setTimeout(tick, CAPTURE_INTERVAL_MS);
   }
 
   function stopCapturing() {
     if (captureTimerRef.current) {
-      clearInterval(captureTimerRef.current);
+      clearTimeout(captureTimerRef.current);
       captureTimerRef.current = null;
     }
   }
