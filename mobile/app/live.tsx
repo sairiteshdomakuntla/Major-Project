@@ -35,10 +35,15 @@ function NarrationBubble({ item }: { item: LiveNarration }) {
   const ts = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   return (
     <View
-      accessibilityLabel={`Narration: ${item.text}`}
-      className="gap-1 rounded-[14px] border border-[#E5E7EB] bg-white px-4 py-3"
+      accessibilityLabel={`${item.urgent ? 'Hazard warning' : 'Narration'}: ${item.text}`}
+      className={`gap-1 rounded-[14px] border px-4 py-3 ${
+        item.urgent ? 'border-[#DC2626] bg-[#FEF2F2]' : 'border-[#E5E7EB] bg-white'
+      }`}
     >
       <View className="flex-row items-center gap-2">
+        {item.urgent && (
+          <Text className="text-xs font-bold uppercase text-[#DC2626]">Hazard</Text>
+        )}
         <Text className="text-xs font-medium text-[#0F766E]">{ts}</Text>
         {item.latencyMs !== undefined && (
           <Text className="text-xs text-[#6B7280]">{item.latencyMs}ms</Text>
@@ -197,10 +202,14 @@ export default function LiveScreen() {
             />
             {/* Overlay showing latest narration text on top of camera */}
             {narrations.length > 0 && isRunning && (
-              <View className="absolute bottom-0 left-0 right-0 bg-black/70 px-4 py-3">
+              <View
+                className={`absolute bottom-0 left-0 right-0 px-4 py-3 ${
+                  narrations[0].urgent ? 'bg-[#DC2626]/90' : 'bg-black/70'
+                }`}
+              >
                 <Text
                   accessibilityLiveRegion="assertive"
-                  className="text-sm leading-5 text-white"
+                  className={`text-sm leading-5 text-white ${narrations[0].urgent ? 'font-bold' : ''}`}
                   numberOfLines={3}
                 >
                   {narrations[0].text}

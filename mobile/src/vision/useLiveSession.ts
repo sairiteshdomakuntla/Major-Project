@@ -18,7 +18,7 @@
 // ---------------------------------------------------------------------------
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AppState } from 'react-native';
+import { AppState, Vibration } from 'react-native';
 import type { AssistantLanguage } from '../api/client';
 import { API_BASE_URL, analyzeVisionImage } from '../api/client';
 import { useProfileStore } from '../profile/store';
@@ -46,14 +46,16 @@ export interface LiveNarration {
   timestamp: number;
   /** Round-trip latency in ms (frame sent → narration received). */
   latencyMs?: number;
+  /** Safety hazard — interrupts speech and vibrates. */
+  urgent?: boolean;
 }
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
-/** Frame capture interval — fast (ms). */
-const CAPTURE_INTERVAL_MS = 500;
+/** Frame capture interval — fast (ms). Backend cooldown is ≥1.5 s, so faster is wasted. */
+const CAPTURE_INTERVAL_MS = 1000;
 /** Frame capture interval — slow, when scene is static (ms). */
 const CAPTURE_SLOW_INTERVAL_MS = 2000;
 /** How long without new narrations before slowing frame rate (ms). */
@@ -62,6 +64,10 @@ const NO_NARRATION_SLOWDOWN_MS = 6000;
 const FRAME_QUALITY = 0.2;
 /** Max narrations kept in the UI log. */
 const MAX_NARRATIONS = 50;
+/** A queued narration older than this is stale and skipped (ms). */
+const PENDING_MAX_AGE_MS = 5000;
+/** Vibration pattern for hazard alerts: wait, buzz, pause, buzz. */
+const URGENT_VIBRATION = [0, 250, 120, 250];
 /** WebSocket ping interval (ms). */
 const WS_PING_INTERVAL_MS = 25_000;
 /** Max reconnect attempts before giving up. */
@@ -87,6 +93,15 @@ function wsUrl(): string {
   return `${base}/api/v1/live`;
 }
 
+/** Splits a leading "[URGENT]" marker off a model reply. */
+function parseUrgent(text: string): { text: string; urgent: boolean } {
+  const urgent = /^\s*\[urgent\]/i.test(text);
+  return {
+    urgent,
+    text: urgent ? text.replace(/^\s*\[urgent\]\s*[:\-–—]?\s*/i, '').trim() : text,
+  };
+}
+
 function isNoChange(text: string): boolean {
   const lower = text.toLowerCase().trim();
   return (
@@ -102,6 +117,9 @@ const INITIAL_PROMPT = [
   'Describe scene in 2 short sentences.',
   'Objects, people, obstacles, text — with positions (left/right/ahead).',
 ].join(' ');
+
+const URGENT_RULE =
+  'If there is an immediate nearby hazard (vehicle, stairs, drop, obstacle a few steps ahead), start with [URGENT] and a warning of max 10 words.';
 
 const DIFF_PROMPT = [
   'Live camera, blind user. Say ONLY what changed since last frame.',
@@ -137,6 +155,11 @@ export function useLiveSession() {
   const lastFrameSentRef = useRef(0);
   /** Timestamp of last genuinely new narration — drives adaptive frame rate. */
   const lastNewNarrationRef = useRef(0);
+
+  // Speech queue: one utterance at a time, plus one freshest pending narration.
+  const speakingRef = useRef(false);
+  const speechTokenRef = useRef(0);
+  const pendingSpeechRef = useRef<{ text: string; at: number } | null>(null);
 
   // Fallback-mode refs
   const fallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -195,7 +218,60 @@ export function useLiveSession() {
       clearTimeout(reconnectTimerRef.current);
       reconnectTimerRef.current = null;
     }
+    cancelSpeech();
+  }
+
+  // -----------------------------------------------------------------------
+  // Speech queue
+  // -----------------------------------------------------------------------
+
+  function cancelSpeech() {
+    speechTokenRef.current++;
+    speakingRef.current = false;
+    pendingSpeechRef.current = null;
     void stopSpeaking();
+  }
+
+  function speakNow(text: string) {
+    const token = ++speechTokenRef.current;
+    speakingRef.current = true;
+    setStatus('speaking');
+    void speakText(text, language).then(() => {
+      // A newer utterance (e.g. an urgent alert) replaced this one.
+      if (token !== speechTokenRef.current) return;
+      speakingRef.current = false;
+      if (!mountedRef.current || !runningRef.current) return;
+
+      const next = pendingSpeechRef.current;
+      pendingSpeechRef.current = null;
+      if (next && Date.now() - next.at < PENDING_MAX_AGE_MS) {
+        speakNow(next.text);
+      } else {
+        setStatus('running');
+      }
+    });
+  }
+
+  /**
+   * Adds a narration to the log and speaks it. Normal narrations never cut
+   * off the current sentence — the newest one waits for it to finish.
+   * Urgent ones interrupt immediately and vibrate.
+   */
+  function deliverNarration(text: string, urgent: boolean, timestamp = Date.now()) {
+    const narration: LiveNarration = { id: nextId(), text, timestamp, urgent };
+    lastNewNarrationRef.current = Date.now();
+    setNarrations((prev) => [narration, ...prev].slice(0, MAX_NARRATIONS));
+    setError(null);
+
+    if (urgent) {
+      pendingSpeechRef.current = null;
+      Vibration.vibrate(URGENT_VIBRATION);
+      speakNow(text);
+    } else if (speakingRef.current) {
+      pendingSpeechRef.current = { text, at: Date.now() };
+    } else {
+      speakNow(text);
+    }
   }
 
   function closeWebSocket() {
@@ -277,27 +353,12 @@ export function useLiveSession() {
           break;
 
         case 'narration': {
-          const text = String(msg.text ?? '').trim();
-          if (!text || isNoChange(text)) break;
+          const parsed = parseUrgent(String(msg.text ?? '').trim());
+          const urgent = msg.urgent === true || parsed.urgent;
+          if (!parsed.text || (!urgent && isNoChange(parsed.text))) break;
 
-          const narration: LiveNarration = {
-            id: nextId(),
-            text,
-            timestamp: typeof msg.ts === 'number' ? msg.ts : Date.now(),
-            latencyMs: typeof msg.ts === 'number' ? Date.now() - msg.ts : undefined,
-          };
-
-          lastNewNarrationRef.current = Date.now();
-          setNarrations((prev) => [narration, ...prev].slice(0, MAX_NARRATIONS));
-          setError(null);
-          setStatus('speaking');
-
-          // Fire-and-forget TTS
-          void stopSpeaking().then(() => {
-            if (mountedRef.current) {
-              void speakText(text, language);
-            }
-          });
+          // Use the local clock — the server's `ts` can be skewed from the phone's.
+          deliverNarration(parsed.text, urgent);
           break;
         }
 
@@ -451,7 +512,12 @@ export function useLiveSession() {
     if (!mountedRef.current || !runningRef.current) return;
     if (!capturerRef.current) return;
 
-    setStatus('capturing');
+    // Don't let capture/analyze status overwrite "Speaking…".
+    const setActivity = (s: LiveStatus) => {
+      if (!speakingRef.current && mountedRef.current && runningRef.current) setStatus(s);
+    };
+
+    setActivity('capturing');
     let base64: string | null = null;
     try {
       base64 = await capturerRef.current();
@@ -459,16 +525,16 @@ export function useLiveSession() {
       // Skip frame
     }
     if (!base64 || !mountedRef.current || !runningRef.current) {
-      if (mountedRef.current && runningRef.current) setStatus('running');
+      setActivity('running');
       return;
     }
 
-    setStatus('analyzing');
+    setActivity('analyzing');
     frameIndexRef.current++;
     setFrameCount(frameIndexRef.current);
 
     const isFirst = fallbackHistoryRef.current.length === 0;
-    const prompt = isFirst ? INITIAL_PROMPT : DIFF_PROMPT;
+    const prompt = `${isFirst ? INITIAL_PROMPT : DIFF_PROMPT} ${URGENT_RULE}`;
 
     fallbackAbortRef.current?.abort();
     const controller = new AbortController();
@@ -488,11 +554,11 @@ export function useLiveSession() {
       );
 
       if (!mountedRef.current || !runningRef.current) return;
-      const reply = result.reply.trim();
+      const { text: reply, urgent } = parseUrgent(result.reply.trim());
 
-      if (isNoChange(reply) || reply === fallbackLastReplyRef.current) {
+      if (!reply || (!urgent && isNoChange(reply)) || reply === fallbackLastReplyRef.current) {
         fallbackNoChangeStreakRef.current++;
-        if (mountedRef.current && runningRef.current) setStatus('running');
+        setActivity('running');
       } else {
         fallbackNoChangeStreakRef.current = 0;
         fallbackLastReplyRef.current = reply;
@@ -501,20 +567,7 @@ export function useLiveSession() {
           { role: 'model' as const, text: reply },
         ];
 
-        const narration: LiveNarration = {
-          id: nextId(),
-          text: reply,
-          timestamp: Date.now(),
-        };
-        setNarrations((prev) => [narration, ...prev].slice(0, MAX_NARRATIONS));
-        setError(null);
-        setStatus('speaking');
-
-        void stopSpeaking().then(() => {
-          if (mountedRef.current) {
-            void speakText(reply, language);
-          }
-        });
+        deliverNarration(reply, urgent);
       }
     } catch (err) {
       if (controller.signal.aborted) return;
@@ -573,7 +626,7 @@ export function useLiveSession() {
     runningRef.current = false;
     stopCapturing();
     stopFallbackCapturing();
-    void stopSpeaking();
+    cancelSpeech();
     setStatus('paused');
   }, []);
 

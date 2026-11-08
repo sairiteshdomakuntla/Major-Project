@@ -11,7 +11,7 @@
 //
 // Server → Client:
 //   { type: "ready" }
-//   { type: "narration", text: "...", turnComplete: true, ts: 1234567890 }
+//   { type: "narration", text: "...", turnComplete: true, urgent: false, ts: 1234567890 }
 //   { type: "error",     message: "..." }
 //   { type: "closed",    reason: "..." }
 //   { type: "stats",     framesForwarded: N, framesDropped: N }
@@ -202,12 +202,13 @@ function handleStart(ws: WebSocket, state: ClientState, msg: StartMessage): void
             sendJson(ws, { type: 'ready' });
           }
         },
-        onNarration: (text: string, turnComplete: boolean) => {
+        onNarration: (text: string, turnComplete: boolean, urgent: boolean) => {
           if (ws.readyState === WebSocket.OPEN) {
             sendJson(ws, {
               type: 'narration',
               text,
               turnComplete,
+              urgent,
               ts: Date.now(),
             });
           }
